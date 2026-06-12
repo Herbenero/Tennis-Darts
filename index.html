@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Darts Tracker</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --tennis-green: #a3e635;
+            --tennis-court: #0284c7;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --net-red: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background-color: var(--card-dark);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .logo-placeholder {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo-placeholder img {
+            max-width: 180px;
+            border-radius: 50%;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            margin: 5px 0;
+        }
+        h1 { color: var(--tennis-green); }
+
+        .screen { display: none; }
+        .active { display: block; }
+
+        /* Setup Screen */
+        .input-group {
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        input[type="text"] {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #475569;
+            background-color: #0f172a;
+            color: white;
+            font-size: 16px;
+        }
+        button {
+            background-color: var(--tennis-green);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Dashboard Match Display */
+        .match-score-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .match-score-table th, .match-score-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+        }
+        .match-score-table th { background-color: #1e293b; color: var(--text-muted); }
+        .server-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: var(--tennis-green);
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        /* Current Turn Status Box */
+        .status-box {
+            background-color: var(--tennis-court);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .side-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            background-color: #0f172a;
+            margin-top: 5px;
+        }
+        .side-left { color: #38bdf8; }
+        .side-right { color: #f59e0b; }
+
+        /* Controls Layout */
+        .multiplier-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .mult-btn {
+            flex: 1;
+            background-color: #334155;
+            color: white;
+        }
+        .mult-btn.selected {
+            background-color: var(--tennis-green);
+            color: black;
+        }
+
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .board-grid button {
+            background-color: #334155;
+            color: white;
+            padding: 12px 5px;
+            font-size: 15px;
+        }
+        .board-grid button.net-btn { background-color: var(--net-red); }
+        .board-grid button.special-btn { background-color: #475569; grid-column: span 2; }
+        .board-grid button.invalid-btn { opacity: 0.25; background-color: #1e293b; color: #64748b; }
+
+        /* Game Log Console */
+        .console-log {
+            background-color: #020617;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px;
+            height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            color: #34d399;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-placeholder">
+        <img src="R7qT56q5.jpg" alt="Shove a Penny Base Layout Design">
+    </div>
+
+    <h1>TENNIS DARTS</h1>
+
+    <div id="setup-screen" class="screen active">
+        <h3>Match Registration</h3>
+        <div class="input-group">
+            <label for="p1-name">Player / Team 1 (Starts Serving Left Side):</label>
+            <input type="text" id="p1-name" value="Player 1" placeholder="Enter name...">
+        </div>
+        <div class="input-group">
+            <label for="p2-name">Player / Team 2:</label>
+            <input type="text" id="p2-name" value="Player 2" placeholder="Enter name...">
+        </div>
+        <button style="width:100%; margin-top:10px;" onclick="initMatch()">Start Match</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        
+        <table class="match-score-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Current Game Score</th>
+                    <th>Games Won (Set)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="td-p1-name">Player 1</td>
+                    <td id="td-p1-game">0</td>
+                    <td id="td-p1-set" style="font-weight: bold; color: var(--tennis-green);">0</td>
+                </tr>
+                <tr>
+                    <td id="td-p2-name">Player 2</td>
+                    <td id="td-p2-game">0</td>
+                    <td id="td-p2-set" style="font-weight: bold; color: var(--tennis-green);">0</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="status-box">
+            <div id="turn-title" style="font-size: 18px; font-weight: bold;">Player 1 Turn</div>
+            <div id="active-side-indicator" class="side-badge side-left">LEFT SIDE ACTIVE</div>
+            <div id="target-indicator" style="margin-top:8px; font-weight:600; font-size:15px;">Target Number: None Set Yet</div>
+            <div id="state-stats" style="margin-top:4px; font-size:13px; opacity:0.9;">Dart: 1 | Multiplier Streak Points: 0</div>
+        </div>
+
+        <div class="multiplier-bar">
+            <button id="m1" class="mult-btn selected" onclick="setMultiplier(1)">Single</button>
+            <button id="m2" class="mult-btn" onclick="setMultiplier(2)">Double</button>
+            <button id="m3" class="mult-btn" onclick="setMultiplier(3)">Triple</button>
+        </div>
+
+        <div class="board-grid" id="dartboard-grid">
+            </div>
+
+        <div class="console-log" id="console-output">
+            Game Ready. Left side active for opening service.
+        </div>
+    </div>
+
+    <div id="winner-screen" class="screen" style="text-align: center; padding: 30px 0;">
+        <h2 style="font-size: 36px; color: var(--tennis-green);">🏆 MATCH COMPLETED! 🏆</h2>
+        <h3 id="winner-banner-text" style="font-size: 24px; margin: 20px 0;">Player 1 Wins the Set!</h3>
+        <button onclick="resetMatch()">Setup New Match</button>
+    </div>
+
+</div>
+
+<script>
+    // Valid Target Side Mapping Definitions
+    const LEFT_SIDE = [5, 12, 9, 14, 11, 8, 16, 7, 19];
+    const RIGHT_SIDE = [1, 18, 4, 13, 6, 10, 15, 2, 17];
+    const NET_NUMBERS = [20, 3];
+    const ALL_NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+
+    // Core Global Tracking Architecture
+    let matchState = {
+        players: [{name: "Player 1", scoreIndex: 0, gamesWon: 0}, {name: "Player 2", scoreIndex: 0, gamesWon: 0}],
+        serverIdx: 0,           // Index tracking who started serving the game
+        activeRollerIdx: 0,     // Index tracking whose hand is throwing darts right now
+        activeSide: "LEFT",     // Alternates between "LEFT" and "RIGHT" per game point won
+        targetNumber: null,     // Number established by first dart of Server
+        dartCount: 0,           // Sequence limits up to 3 or dynamic end conditional state matches
+        serverStreakHits: 0,    // High Score tracking score metric for server
+        receiverStreakHits: 0,  // Tracking counter score metric for challenger
+        isSetTiebreak: false,   // 3-3 Games Tracker flag variation logic trigger
+        isGameDeuceTiebreak: false, // 40-40 Deuce variant state indicator
+        streakPointsConsecutive: 0 // Special counter track for Set Tiebreak consecutive wins condition
+    };
+
+    const TENNIS_SCORES = ["0", "15", "30", "40", "Advantage"];
+    let selectedMultiplier = 1;
+
+    function initMatch() {
+        const p1 = document.getElementById('p1-name').value.trim() || "Player 1";
+        const p2 = document.getElementById('p2-name').value.trim() || "Player 2";
+        
+        matchState.players[0] = { name: p1, scoreIndex: 0, gamesWon: 0 };
+        matchState.players[1] = { name: p2, scoreIndex: 0, gamesWon: 0 };
+        
+        matchState.serverIdx = 0;
+        matchState.activeRollerIdx = 0;
+        matchState.activeSide = "LEFT";
+        
+        resetPointTurnState();
+
+        document.getElementById('td-p1-name').innerText = p1;
+        document.getElementById('td-p2-name').innerText = p2;
+
+        document.getElementById('setup-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        
+        renderInteractiveGrid();
+        updateDisplayScoreboard();
+    }
+
+    function logEvent(msg) {
+        const consoleBox = document.getElementById('console-output');
+        consoleBox.innerHTML += `<br>> ${msg}`;
+        consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    function setMultiplier(m) {
+        selectedMultiplier = m;
+        document.querySelectorAll('.mult-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById(`m${m}`).classList.add('selected');
+    }
+
+    function renderInteractiveGrid() {
+        const container = document.getElementById('dartboard-grid');
+        container.innerHTML = '';
+
+        // Dynamically loop dartboard pieces mapping buttons visually
+        ALL_NUMBERS.forEach(num => {
+            const btn = document.createElement('button');
+            btn.innerText = num;
+            
+            // Check classifications properties
+            if (NET_NUMBERS.includes(num)) {
+                btn.className = 'net-btn';
+            } else {
+                let isLeft = LEFT_SIDE.includes(num);
+                if ((matchState.activeSide === "LEFT" && !isLeft) || (matchState.activeSide === "RIGHT" && isLeft)) {
+                    btn.className = 'invalid-btn';
+                }
+            }
+            
+            btn.onclick = () => handleDartThrow(num);
+            container.appendChild(btn);
+        });
+
+        // Add Miss Action Button Bottom Footers
+        const missBtn = document.createElement('button');
+        missBtn.innerText = "❌ Miss External";
+        missBtn.className = "special-btn";
+        missBtn.onclick = () => handleDartThrow('MISS');
+        container.appendChild(missBtn);
+
+        // Add Bullseye Option button
+        const bullBtn = document.createElement('button');
+        bullBtn.innerText = "🎯 Bullseye";
+        bullBtn.className = "special-btn";
+        bullBtn.onclick = () => handleDartThrow('BULL');
+        container.appendChild(bullBtn);
+    }
+
+    function resetPointTurnState() {
+        matchState.targetNumber = null;
+        matchState.dartCount = 0;
+        matchState.serverStreakHits = 0;
+        matchState.receiverStreakHits = 0;
+        matchState.activeRollerIdx = matchState.serverIdx; // Server always starts throwing sequence
+        setMultiplier(1);
+    }
+
+    function handleDartThrow(val) {
+        matchState.dartCount++;
+        let activeThrower = matchState.players[matchState.activeRollerIdx];
+        let isServer = (matchState.activeRollerIdx === matchState.serverIdx);
+
+        logEvent(`${activeThrower.name} throws Dart #${matchState.dartCount}: Segment [${val}] (Multiplier x${selectedMultiplier})`);
+
+        // Rule 1: Validate Net Condition Target Hit
+        if (NET_NUMBERS.includes(val)) {
+            logEvent(`💥 Net Hit! ${activeThrower.name} loses the point point instantly!`);
+            awardPointToOpponent();
+            return;
+        }
+
+        // Rule 2: Validate active side rules constraints
+        let isValidSide = false;
+        if (val === 'BULL') isValidSide = true; // Bullseye counted as wild match valid
+        if (matchState.activeSide === "LEFT" && LEFT_SIDE.includes(val)) isValidSide = true;
+        if (matchState.activeSide === "RIGHT" && RIGHT_SIDE.includes(val)) isValidSide = true;
+
+        if (!isValidSide && val !== 'MISS') {
+            logEvent(`⚠️ Hit wrong side of the board! Counted as a miss for active side rules.`);
+        }
+
+        // Rule 3: Fail to hit valid active side inside first two shots condition checking
+        if (matchState.targetNumber === null && !isValidSide && matchState.dartCount >= 2 && isServer) {
+            logEvent(`❌ Failed to hit valid target on first two shots! Serving player loses point.`);
+            awardPointToOpponent();
+            return;
+        }
+
+        // Processing Server Logic Phase
+        if (isServer) {
+            if (matchState.targetNumber === null) {
+                // Setting up initial point target value
+                if (isValidSide && val !== 'MISS') {
+                    matchState.targetNumber = val;
+                    
+                    // Check for immediate Ace match condition rule
+                    if (selectedMultiplier === 2) {
+                        logEvent(`🎾 ACE! Double thrown on first dart! ${activeThrower.name} wins point directly!`);
+                        awardPointToActiveThrower();
+                        return;
+                    }
+                    
+                    matchState.serverStreakHits += selectedMultiplier;
+                    logEvent(`Target established: [${val === 'BULL' ? 'Bullseye' : val}]. Current score: ${matchState.serverStreakHits}`);
+                }
+            } else {
+                // Target is established, check if hits matching value criteria
+                if (val === matchState.targetNumber || (val === 'BULL' && matchState.targetNumber === 'BULL')) {
+                    matchState.serverStreakHits += selectedMultiplier;
+                    logEvent(`Hit! Server score increased to: ${matchState.serverStreakHits}`);
+                } else {
+                    logEvent(`Server failed to hit target [${matchState.targetNumber === 'BULL' ? 'Bull' : matchState.targetNumber}]. Turn passes to Receiver.`);
+                    passTurnToReceiver();
+                    return;
+                }
+            }
+        } 
+        // Processing Receiver Logic Phase
+        else {
+            if (val === matchState.targetNumber || (val === 'BULL' && matchState.targetNumber === 'BULL')) {
+                matchState.receiverStreakHits += selectedMultiplier;
+                logEvent(`Receiver hits target! Current Challenger score: ${matchState.receiverStreakHits} / Target to beat: ${matchState.serverStreakHits}`);
+                
+                // Immediate check if high score is beaten during sequence
+                if (matchState.receiverStreakHits > matchState.serverStreakHits) {
+                    logEvent(`📈 Receiver beats high score! Receiver wins point.`);
+                    awardPointToActiveThrower();
+                    return;
+                }
+            }
+
+            // End of receiver 3 darts capacity check
+            if (matchState.dartCount >= 3) {
+                logEvent(`Darts completed for Receiver. Failed to exceed server score.`);
+                awardPointToServer();
+                return;
+            }
+        }
+
+        // Set multiplier single state loop fallback
+        setMultiplier(1);
+        updateDisplayScoreboard();
+    }
+
+    function passTurnToReceiver() {
+        matchState.activeRollerIdx = (matchState.serverIdx === 0) ? 1 : 0;
+        matchState.dartCount = 0; // Fresh 3 darts sequence tracking for receiver
+        setMultiplier(1);
+        updateDisplayScoreboard();
+    }
+
+    function awardPointToOpponent() {
+        let opponentIdx = (matchState.activeRollerIdx === 0) ? 1 : 0;
+        processPointWin(opponentIdx);
+    }
+
+    function awardPointToActiveThrower() {
+        processPointWin(matchState.activeRollerIdx);
+    }
+
+    function awardPointToServer() {
+        processPointWin(matchState.serverIdx);
+    }
+
+    function processPointWin(winnerIdx) {
+        let winner = matchState.players[winnerIdx];
+        logEvent(`🏅 ${winner.name} wins this point!`);
+
+        // Check if handling custom Set Tiebreak Logic rules variant execution
+        if (matchState.isSetTiebreak) {
+            handleSetTiebreakScoring(winnerIdx);
+            return;
+        }
+
+        // Standard Regular Game Scoring Progression Implementation
+        let currentScoreIndex = winner.scoreIndex;
+        let opponentIdx = (winnerIdx === 0) ? 1 : 0;
+        let opponent = matchState.players[opponentIdx];
+
+        if (currentScoreIndex === 0) winner.scoreIndex = 1; // 15
+        else if (currentScoreIndex === 1) winner.scoreIndex = 2; // 30
+        else if (currentScoreIndex === 2) winner.scoreIndex = 3; // 40
+        else if (currentScoreIndex === 3) {
+            // Evaluates Deuce/Advantage state checks natively 
+            if (opponent.scoreIndex === 3) {
+                winner.scoreIndex = 4; // Advantage
+            } else if (opponent.scoreIndex === 4) {
+                opponent.scoreIndex = 3; // Reset down back to Deuce
+                logEvent(`Deuce! Advantage broken.`);
+            } else {
+                executeGameWin(winnerIdx);
+                return;
+            }
+        } else if (currentScoreIndex === 4) {
+            // Wins point from Advantage state position cleanly
+            executeGameWin(winnerIdx);
+            return;
+        }
+
+        // Trigger Deuce status tracking alert update text directly
+        if (winner.scoreIndex === 3 && opponent.scoreIndex === 3) {
+            logEvent("📢 DEUCE! A Regular Tiebreak system will be used for this game point.");
+            matchState.isGameDeuceTiebreak = true;
+        }
+
+        // Alternate active board sides following point win step
+        matchState.activeSide = (matchState.activeSide === "LEFT") ? "RIGHT" : "LEFT";
+        logEvent(`Active side changes to: ${matchState.activeSide}`);
+
+        resetPointTurnState();
+        renderInteractiveGrid();
+        updateDisplayScoreboard();
+    }
+
+    function handleSetTiebreakScoring(winnerIdx) {
+        // Under Set Tiebreak rules, the Server must win 2 consecutive points to win the entire game.
+        if (winnerIdx === matchState.serverIdx) {
+            matchState.streakPointsConsecutive++;
+            logEvent(`Server has won ${matchState.streakPointsConsecutive} consecutive point(s). Need 2 to secure.`);
+            if (matchState.streakPointsConsecutive >= 2) {
+                executeGameWin(matchState.serverIdx);
+                return;
+            }
+        } else {
+            logEvent(`Challenger breaks the server streak! Challenger wins this Service Game.`);
+            executeGameWin(winnerIdx);
+            return;
+        }
+
+        matchState.activeSide = (matchState.activeSide === "LEFT") ? "RIGHT" : "LEFT";
+        resetPointTurnState();
+        renderInteractiveGrid();
+        updateDisplayScoreboard();
+    }
+
+    function executeGameWin(winnerIdx) {
+        let winner = matchState.players[winnerIdx];
+        winner.gamesWon++;
+        logEvent(`🎾 GAME WON: ${winner.name} wins the Service Game!`);
+
+        // Reset tracking parameter rules scores
+        matchState.players[0].scoreIndex = 0;
+        matchState.players[1].scoreIndex = 0;
+        matchState.isGameDeuceTiebreak = false;
+        matchState.isSetTiebreak = false;
+        matchState.streakPointsConsecutive = 0;
+
+        // Check overall global set win condition thresholds (4 games won wins match)
+        if (winner.gamesWon >= 4) {
+            handleMatchEnd(winner.name);
+            return;
+        }
+
+        // Check if Set Tiebreak trigger happens at 3-3 tie scenario
+        if (matchState.players[0].gamesWon === 3 && matchState.players[1].gamesWon === 3) {
+            logEvent("🚨 SET TIEBREAK TRIGGERED (3-3 Games)! Server must win two consecutive points to take the game.");
+            matchState.isSetTiebreak = true;
+        }
+
+        // Rotate Service duties down across tracking turns setup configurations
+        matchState.serverIdx = (matchState.serverIdx === 0) ? 1 : 0;
+        logEvent(`New Server assigned: ${matchState.players[matchState.serverIdx].name}`);
+
+        matchState.activeSide = (matchState.activeSide === "LEFT") ? "RIGHT" : "LEFT";
+        
+        resetPointTurnState();
+        renderInteractiveGrid();
+        updateDisplayScoreboard();
+    }
+
+    function updateDisplayScoreboard() {
+        let p1 = matchState.players[0];
+        let p2 = matchState.players[1];
+
+        // Format score text strings cleanly output
+        let p1ScoreDisplay = TENNIS_SCORES[p1.scoreIndex];
+        let p2ScoreDisplay = TENNIS_SCORES[p2.scoreIndex];
+
+        if (matchState.isGameDeuceTiebreak) {
+            if (p1.scoreIndex === 3 && p2.scoreIndex === 3) { p1ScoreDisplay = "Deuce"; p2ScoreDisplay = "Deuce"; }
+        }
+        if (matchState.isSetTiebreak) {
+            p1ScoreDisplay = "Tiebreak";
+            p2ScoreDisplay = "Tiebreak";
+        }
+
+        // Display labels assignments
+        document.getElementById('td-p1-game').innerText = p1ScoreDisplay;
+        document.getElementById('td-p2-game').innerText = p2ScoreDisplay;
+        document.getElementById('td-p1-set').innerText = p1.gamesWon;
+        document.getElementById('td-p2-set').innerText = p2.gamesWon;
+
+        // Update Turn Box Display Elements Contexts
+        let activePlayerName = matchState.players[matchState.activeRollerIdx].name;
+        let serverStar = (matchState.activeRollerIdx === matchState.serverIdx) ? " (Serving 🎾)" : " (Receiving)";
+        document.getElementById('turn-title').innerText = `${activePlayerName}${serverStar}`;
+        
+        document.getElementById('active-side-indicator').innerText = `${matchState.activeSide} SIDE ACTIVE`;
+        document.getElementById('active-side-indicator').className = `side-badge ${matchState.activeSide === 'LEFT' ? 'side-left' : 'side-right'}`;
+        
+        let targetText = matchState.targetNumber ? (matchState.targetNumber === 'BULL' ? 'Bullseye' : matchState.targetNumber) : "None Set Yet";
+        document.getElementById('target-indicator').innerText = `Target Number: ${targetText}`;
+
+        let currentHigh = (matchState.activeRollerIdx === matchState.serverIdx) ? matchState.serverStreakHits : matchState.receiverStreakHits;
+        document.getElementById('state-stats').innerText = `Dart: ${matchState.dartCount} | Active Points Total: ${currentHigh}`;
+    }
+
+    function handleMatchEnd(winnerName) {
+        document.getElementById('game-screen').classList.remove('active');
+        document.getElementById('winner-screen').classList.add('active');
+        document.getElementById('winner-banner-text').innerText = `🎉 ${winnerName} Wins the Match! 🎉`;
+    }
+
+    function resetMatch() {
+        document.getElementById('winner-screen').classList.remove('active');
+        document.getElementById('setup-screen').classList.add('active');
+    }
+</script>
+</body>
+</html>
