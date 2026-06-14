@@ -502,7 +502,10 @@
             matchState.isGameDeuceTiebreak = true;
         }
 
-        // Alternate active board sides following point win step
+        // Alternate server and active board sides following each point win step
+        matchState.serverIdx = (matchState.serverIdx === 0) ? 1 : 0;
+        logEvent(`New Server assigned: ${matchState.players[matchState.serverIdx].name}`);
+
         matchState.activeSide = (matchState.activeSide === "LEFT") ? "RIGHT" : "LEFT";
         logEvent(`Active side changes to: ${matchState.activeSide}`);
 
@@ -555,10 +558,6 @@
             logEvent("🚨 SET TIEBREAK TRIGGERED (3-3 Games)! Server must win two consecutive points to take the game.");
             matchState.isSetTiebreak = true;
         }
-
-        // Rotate Service duties down across tracking turns setup configurations
-        matchState.serverIdx = (matchState.serverIdx === 0) ? 1 : 0;
-        logEvent(`New Server assigned: ${matchState.players[matchState.serverIdx].name}`);
 
         matchState.activeSide = (matchState.activeSide === "LEFT") ? "RIGHT" : "LEFT";
         
@@ -617,3 +616,4 @@
 </script>
 </body>
 </html>
+
