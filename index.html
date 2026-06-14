@@ -36,12 +36,17 @@
             box-sizing: border-box;
         }
 
-        .logo-placeholder {
-            text-align: center;
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
             margin-bottom: 15px;
         }
-        .logo-placeholder img {
-            max-width: 180px;
+        .brand-header img {
+            width: 82px;
+            height: 82px;
+            object-fit: contain;
             border-radius: 50%;
         }
 
@@ -175,11 +180,10 @@
 <body>
 
 <div class="container">
-    <div class="logo-placeholder">
-        <img src="R7qT56q5.jpg" alt="Shove a Penny Base Layout Design">
+    <div class="brand-header">
+        <img src="C:/Users/herbh/Downloads/Shove%20a%20Penny.jpg" alt="Shove a Penny logo">
+        <h1>TENNIS DARTS</h1>
     </div>
-
-    <h1>TENNIS DARTS</h1>
 
     <div id="setup-screen" class="screen active">
         <h3>Match Registration</h3>
@@ -426,6 +430,10 @@
                     awardPointToActiveThrower();
                     return;
                 }
+            } else {
+                logEvent(`Receiver missed the target. Point goes to the Server.`);
+                awardPointToServer();
+                return;
             }
 
             // End of receiver 3 darts capacity check
@@ -616,4 +624,3 @@
 </script>
 </body>
 </html>
-
