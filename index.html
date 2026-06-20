@@ -1048,7 +1048,9 @@
         receiverDarts: [],
         firstTwoMissCount: 0,
         tiebreakMode: null, // null, 'deuce', 'set'
-        consecutiveSetTbWinsByServer: 0
+        consecutiveSetTbWinsByServer: 0,
+        currentGameNumber: 1,
+        maxGames: 7
       };
 
       gameStatus.innerHTML = '<span class="dot"></span> Match Live';
@@ -1228,7 +1230,7 @@
         if(result.segment === match.targetNumber){
           match.receiverScore += match.targetNumber;
           logEvent(`${thrower.name} matched target ${match.targetNumber}. Return total is ${match.receiverScore}.`);
-          // CHANGE HERE: Receiver must score MORE than server to win point
+          // Receiver must score MORE than server to win point
           if(match.receiverScore > match.serverScore){
             logEvent(`${thrower.name} beat the server's score.`);
             concludePoint(match.receiverIndex);
@@ -1239,7 +1241,7 @@
         }
 
         if(darts.length >= 3){
-          // CHANGE HERE: Receiver must have strictly greater score to win, else server wins
+          // Receiver must have strictly greater score to win, else server wins
           const winner = match.receiverScore > match.serverScore ? match.receiverIndex : match.serverIndex;
           logEvent(`${players[winner].name} wins the service point.`);
           concludePoint(winner);
@@ -1253,8 +1255,6 @@
         logEvent(`${thrower.name}'s turn ends. ${getReceiver().name} must beat ${match.serverScore}.`);
       }
     }
-
-    // ... (rest of the code unchanged) ...
 
     function handleTiebreakThrow(result, thrower, isServerTurn, darts){
       if(isServerTurn && darts.length === 1 && isValidSideHit(result) && result.multi === 'D'){
@@ -1324,7 +1324,8 @@
 
       logEvent(`${winner.name} wins the service game.`);
 
-      if(winner.gamesWon >= 4 && !isSetTiebreakRequired()){
+      // Check if match is won (best of 7)
+      if(winner.gamesWon > Math.floor(match.maxGames / 2)){
         gameOver = true;
         gameStatus.innerHTML = '<span class="dot"></span> Winner';
         alert(`${winner.name} wins Tennis Darts!`);
@@ -1333,6 +1334,7 @@
         return;
       }
 
+      // Check for tiebreak conditions
       if(players[0].gamesWon === 3 && players[1].gamesWon === 3){
         match.tiebreakMode = 'set';
         match.consecutiveSetTbWinsByServer = 0;
@@ -1344,18 +1346,30 @@
         match.tiebreakMode = null;
       }
 
-      rotateAfterPoint(winnerIndex);
+      // Increment game number
+      match.currentGameNumber++;
+
+      // Alternate server starting each new game:
+      // Player 2 serves from left side on next game, then alternate thereafter
+      if(match.currentGameNumber % 2 === 1){
+        // Odd game number: player 1 serves from left side
+        match.serverIndex = 0;
+        match.receiverIndex = 1;
+        match.activeSide = 'left';
+      } else {
+        // Even game number: player 2 serves from left side
+        match.serverIndex = 1;
+        match.receiverIndex = 0;
+        match.activeSide = 'left';
+      }
+
+      resetPointState();
+      logEvent(`${players[match.serverIndex].name} serves next on the ${match.activeSide} side.`);
     }
 
     function rotateAfterPoint(pointWinnerIndex){
-      match.activeSide = match.activeSide === 'left' ? 'right' : 'left';
-      match.serverIndex = match.receiverIndex;
-      match.receiverIndex = pointWinnerIndex === match.serverIndex ? (match.serverIndex === 0 ? 1 : 0) : match.serverIndex === 0 ? 1 : 0;
-      if(match.serverIndex === match.receiverIndex){
-        match.receiverIndex = match.serverIndex === 0 ? 1 : 0;
-      }
-      resetPointState();
-      logEvent(`${players[match.serverIndex].name} serves next on the ${match.activeSide} side.`);
+      // This function is now handled inside awardGamePoint with server alternation
+      // Kept for compatibility if needed elsewhere
     }
 
     function resetPointState(){
