@@ -3,724 +3,847 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tennis Darts</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <title>Tennis Darts with Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
   <style>
-    :root{
-      --bg:#f3efe4;
-      --bg2:#ece5d3;
-      --court:#d7c09a;
-      --line:#5f4e35;
-      --panel:rgba(255,248,235,.78);
-      --panel-2:rgba(255,255,255,.48);
-      --text:#1f1a14;
-      --muted:#6f675d;
-      --green:#7aa05f;
-      --green-2:#96b978;
-      --clay:#b86f52;
-      --gold:#d5a64d;
-      --danger:#c54c4c;
-      --shadow:0 20px 50px rgba(73,52,22,.12);
-      --radius:24px;
-      --radius-sm:16px;
-      --max:1480px;
+    :root {
+      --bg: #d0e8d0; /* Soft green background */
+      --bg2: #c0d8c0;
+      --court: #b0c8b0;
+      --line: #5f7a5f;
+      --panel: rgba(255, 255, 255, 0.85);
+      --panel-2: rgba(255, 255, 255, 0.48);
+      --text: #1f3a1f;
+      --muted: #5f7a5f;
+      --green: #4a7a4a;
+      --green-2: #6aa96a;
+      --clay: #8b6f52;
+      --gold: #a6b64d;
+      --danger: #c54c4c;
+      --shadow: 0 20px 50px rgba(73, 100, 22, 0.12);
+      --radius: 24px;
+      --radius-sm: 16px;
+      --max: 1480px;
     }
 
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0}
-    body{
-      min-height:100vh;
-      font-family:'Inter',sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 15% 10%, rgba(122,160,95,.12), transparent 28%),
-        radial-gradient(circle at 85% 10%, rgba(184,111,82,.1), transparent 24%),
-        linear-gradient(180deg, #f4efe3 0%, #efe7d8 55%, #e8deca 100%);
-      overflow-x:hidden;
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      min-height: 100vh;
+      font-family: "Inter", sans-serif;
+      color: var(--text);
+      background: radial-gradient(
+          circle at 15% 10%,
+          rgba(74, 122, 74, 0.12),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 85% 10%,
+          rgba(107, 140, 107, 0.1),
+          transparent 24%
+        ),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 55%, var(--court) 100%);
+      overflow-x: hidden;
     }
 
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background:
-        linear-gradient(rgba(95,78,53,.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(95,78,53,.03) 1px, transparent 1px);
-      background-size:34px 34px;
-      mask-image:linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.05));
-      z-index:0;
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(rgba(95, 122, 95, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(95, 122, 95, 0.03) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.05));
+      z-index: 0;
     }
 
-    .app{
-      position:relative;
-      z-index:1;
-      width:min(var(--max), calc(100% - 28px));
-      margin:0 auto;
-      padding:22px 0 42px;
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(var(--max), calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 42px;
     }
 
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:18px;
-      margin-bottom:20px;
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 20px;
     }
 
-    .brand{
-      display:flex;
-      gap:16px;
-      align-items:center;
+    .brand {
+      display: flex;
+      gap: 16px;
+      align-items: center;
     }
 
-    .logo{
-      width:64px;height:64px;border-radius:20px;
-      display:grid;place-items:center;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.8), rgba(255,255,255,.45)),
+    .logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.8),
+          rgba(255, 255, 255, 0.45)
+        ),
         linear-gradient(135deg, #f9f2e3, #e7dbc4);
-      border:1px solid rgba(95,78,53,.14);
-      box-shadow:var(--shadow);
+      border: 1px solid rgba(95, 78, 53, 0.14);
+      box-shadow: var(--shadow);
     }
 
-    .brand h1{
-      margin:0;
-      font-family:'Anton',sans-serif;
-      font-size:clamp(2.3rem, 5vw, 4.6rem);
-      line-height:.92;
-      letter-spacing:.03em;
-      text-transform:uppercase;
+    .brand h1 {
+      margin: 0;
+      font-family: "Anton", sans-serif;
+      font-size: clamp(2.3rem, 5vw, 4.6rem);
+      line-height: 0.92;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
 
-    .brand p{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size:.96rem;
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.96rem;
     }
 
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.55);
-      border:1px solid rgba(95,78,53,.12);
-      color:var(--green);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      font-weight:800;
-      font-size:.8rem;
-      white-space:nowrap;
-      box-shadow:var(--shadow);
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(95, 78, 53, 0.12);
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 800;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      box-shadow: var(--shadow);
     }
 
-    .dot{
-      width:9px;height:9px;border-radius:50%;
-      background:var(--green);
-      box-shadow:0 0 0 6px rgba(122,160,95,.12);
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 6px rgba(122, 160, 95, 0.12);
     }
 
-    .hero{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:20px;
-      margin-bottom:20px;
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 1.2fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
     }
 
-    .panel{
-      background:var(--panel);
-      border:1px solid rgba(95,78,53,.12);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      backdrop-filter:blur(12px);
-      -webkit-backdrop-filter:blur(12px);
-      overflow:hidden;
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(95, 78, 53, 0.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      overflow: hidden;
     }
 
-    .intro{
-      padding:28px;
-      position:relative;
-      isolation:isolate;
+    .intro {
+      padding: 28px;
+      position: relative;
+      isolation: isolate;
     }
 
-    .intro::after{
-      content:"";
-      position:absolute;
-      right:-70px;bottom:-70px;
-      width:260px;height:260px;border-radius:50%;
-      background:radial-gradient(circle, rgba(122,160,95,.16), transparent 68%);
-      filter:blur(8px);
-      z-index:-1;
+    .intro::after {
+      content: "";
+      position: absolute;
+      right: -70px;
+      bottom: -70px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(122, 160, 95, 0.16), transparent 68%);
+      filter: blur(8px);
+      z-index: -1;
     }
 
-    .eyebrow{
-      display:inline-block;
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid rgba(95,78,53,.12);
-      background:rgba(255,255,255,.45);
-      color:var(--gold);
-      font-size:.8rem;
-      text-transform:uppercase;
-      letter-spacing:.14em;
-      font-weight:800;
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(95, 78, 53, 0.12);
+      background: rgba(255, 255, 255, 0.45);
+      color: var(--gold);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 800;
     }
 
-    .intro h2{
-      margin:16px 0 12px;
-      font-family:'Anton',sans-serif;
-      font-size:clamp(2.8rem, 7vw, 5.6rem);
-      line-height:.92;
-      text-transform:uppercase;
-      letter-spacing:.02em;
-      max-width:11ch;
+    .intro h2 {
+      margin: 16px 0 12px;
+      font-family: "Anton", sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5.6rem);
+      line-height: 0.92;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      max-width: 11ch;
     }
 
-    .intro p{
-      color:var(--muted);
-      line-height:1.72;
-      max-width:68ch;
-      margin:0;
+    .intro p {
+      color: var(--muted);
+      line-height: 1.72;
+      max-width: 68ch;
+      margin: 0;
     }
 
-    .rule-grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:12px;
-      margin-top:22px;
+    .rule-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 22px;
     }
 
-    .rule{
-      padding:16px;
-      border-radius:18px;
-      background:rgba(255,255,255,.46);
-      border:1px solid rgba(95,78,53,.08);
-      min-height:132px;
+    .rule {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.46);
+      border: 1px solid rgba(95, 78, 53, 0.08);
+      min-height: 132px;
     }
 
-    .rule strong{
-      display:block;
-      color:var(--green);
-      margin-bottom:8px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      font-size:.82rem;
+    .rule strong {
+      display: block;
+      color: var(--green);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.82rem;
     }
 
-    .rule span{
-      color:var(--muted);
-      font-size:.92rem;
-      line-height:1.55;
+    .rule span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
     }
 
-    .side{
-      display:grid;
-      gap:20px;
-      align-content:start;
+    .side {
+      display: grid;
+      gap: 20px;
+      align-content: start;
     }
 
-    .box{padding:22px}
-
-    h3{
-      margin:0 0 14px;
-      font-family:'Anton',sans-serif;
-      font-size:2rem;
-      line-height:1;
-      letter-spacing:.04em;
-      text-transform:uppercase;
+    .box {
+      padding: 22px;
     }
 
-    .player-form{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:10px;
-      margin-bottom:14px;
+    h3 {
+      margin: 0 0 14px;
+      font-family: "Anton", sans-serif;
+      font-size: 2rem;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
-    input{
-      width:100%;
-      border:none;
-      outline:none;
-      color:var(--text);
-      background:#fffaf0;
-      border:1px solid rgba(95,78,53,.12);
-      border-radius:16px;
-      padding:16px 18px;
-      font:inherit;
-      transition:.2s ease;
+    .player-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    input:focus{
-      border-color:rgba(122,160,95,.45);
-      box-shadow:0 0 0 4px rgba(122,160,95,.12);
-      transform:translateY(-1px);
+    input {
+      width: 100%;
+      border: none;
+      outline: none;
+      color: var(--text);
+      background: #fffaf0;
+      border: 1px solid rgba(95, 78, 53, 0.12);
+      border-radius: 16px;
+      padding: 16px 18px;
+      font: inherit;
+      transition: 0.2s ease;
     }
 
-    .btn,.control-btn,.grid-btn,.mini-btn{
-      appearance:none;
-      border:none;
-      cursor:pointer;
-      color:var(--text);
-      font:inherit;
-      font-weight:800;
-      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+    input:focus {
+      border-color: rgba(122, 160, 95, 0.45);
+      box-shadow: 0 0 0 4px rgba(122, 160, 95, 0.12);
+      transform: translateY(-1px);
     }
 
-    .btn:hover,.control-btn:hover,.grid-btn:hover,.mini-btn:hover{transform:translateY(-2px)}
-    .btn:active,.control-btn:active,.grid-btn:active,.mini-btn:active{transform:translateY(1px) scale(.985)}
-
-    .btn{
-      border-radius:16px;
-      padding:14px 18px;
-      background:rgba(255,255,255,.54);
-      border:1px solid rgba(95,78,53,.12);
+    .btn,
+    .control-btn,
+    .grid-btn,
+    .mini-btn {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text);
+      font: inherit;
+      font-weight: 800;
+      transition: transform 0.16s ease, box-shadow 0.16s ease,
+        border-color 0.16s ease, background 0.16s ease;
     }
 
-    .btn-primary{
-      background:linear-gradient(135deg, var(--green), var(--green-2));
-      color:#11200a;
-      border-color:transparent;
-      box-shadow:0 14px 28px rgba(122,160,95,.2);
+    .btn:hover,
+    .control-btn:hover,
+    .grid-btn:hover,
+    .mini-btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn:active,
+    .control-btn:active,
+    .grid-btn:active,
+    .mini-btn:active {
+      transform: translateY(1px) scale(0.985);
     }
 
-    .chips{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      min-height:48px;
-      margin-bottom:12px;
+    .btn {
+      border-radius: 16px;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.54);
+      border: 1px solid rgba(95, 78, 53, 0.12);
     }
 
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.55);
-      border:1px solid rgba(95,78,53,.09);
-      font-weight:800;
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      color: #11200a;
+      border-color: transparent;
+      box-shadow: 0 14px 28px rgba(122, 160, 95, 0.2);
     }
 
-    .chip button{
-      width:24px;height:24px;border-radius:50%;
-      border:none;background:rgba(95,78,53,.08);
-      color:var(--text);cursor:pointer;font-weight:900;
+    .chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-height: 48px;
+      margin-bottom: 12px;
     }
 
-    .meta,.empty{
-      color:var(--muted);
-      font-size:.93rem;
-      line-height:1.6;
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(95, 78, 53, 0.09);
+      font-weight: 800;
     }
 
-    .main{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:20px;
+    .chip button {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(95, 78, 53, 0.08);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 900;
     }
 
-    .stack{
-      display:grid;
-      gap:20px;
-      align-content:start;
+    .meta,
+    .empty {
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.6;
     }
 
-    .court-panel{padding:22px}
-
-    .scoreline{
-      display:grid;
-      grid-template-columns:1fr auto 1fr;
-      gap:14px;
-      align-items:center;
-      margin-bottom:18px;
+    .main {
+      display: grid;
+      grid-template-columns: 1.1fr 1.2fr 1fr;
+      gap: 20px;
     }
 
-    .player-score{
-      padding:18px;
-      border-radius:22px;
-      border:1px solid rgba(95,78,53,.09);
-      background:rgba(255,255,255,.45);
+    .stack {
+      display: grid;
+      gap: 20px;
+      align-content: start;
     }
 
-    .player-score .name{
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      font-size:.76rem;
-      font-weight:800;
-      margin-bottom:8px;
+    .court-panel {
+      padding: 22px;
     }
 
-    .player-score .points{
-      font-family:'Anton',sans-serif;
-      font-size:3rem;
-      line-height:.95;
-      letter-spacing:.04em;
+    .scoreline {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
     }
 
-    .versus{
-      font-family:'Anton',sans-serif;
-      color:var(--gold);
-      font-size:1.5rem;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+    .player-score {
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(95, 78, 53, 0.09);
+      background: rgba(255, 255, 255, 0.45);
     }
 
-    .meta-grid{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      margin-bottom:18px;
+    .player-score .name {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.76rem;
+      font-weight: 800;
+      margin-bottom: 8px;
     }
 
-    .meta-box{
-      padding:14px;
-      border-radius:18px;
-      border:1px solid rgba(95,78,53,.08);
-      background:rgba(255,255,255,.45);
+    .player-score .points {
+      font-family: "Anton", sans-serif;
+      font-size: 3rem;
+      line-height: 0.95;
+      letter-spacing: 0.04em;
     }
 
-    .meta-box strong{
-      display:block;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      font-size:.72rem;
-      margin-bottom:6px;
+    .versus {
+      font-family: "Anton", sans-serif;
+      color: var(--gold);
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .meta-box span{
-      font-weight:900;
-      color:var(--text);
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
     }
 
-    .court{
-      border-radius:28px;
-      overflow:hidden;
-      border:1px solid rgba(95,78,53,.12);
-      background:
-        linear-gradient(180deg, #d1b389, #c9aa7d);
-      position:relative;
-      min-height:420px;
-      box-shadow:var(--shadow);
-      padding:22px;
+    .meta-box {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(95, 78, 53, 0.08);
+      background: rgba(255, 255, 255, 0.45);
     }
 
-    .court-inner{
-      position:relative;
-      min-height:376px;
-      border-radius:24px;
-      background:linear-gradient(180deg, #7ba15e, #6a9150);
-      overflow:hidden;
-      border:4px solid #f4ecdc;
+    .meta-box strong {
+      display: block;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      margin-bottom: 6px;
+    }
+
+    .meta-box span {
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .court {
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(95, 78, 53, 0.12);
+      background: linear-gradient(180deg, #b3d1b3, #a0c1a0);
+      position: relative;
+      min-height: 420px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .court-inner {
+      position: relative;
+      min-height: 376px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #7ba15e, #6a9150);
+      overflow: hidden;
+      border: 4px solid #f4ecdc;
     }
 
     .court-inner::before,
-    .court-inner::after{
-      content:"";
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      width:4px;
-      background:#f4ecdc;
+    .court-inner::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      background: #f4ecdc;
     }
 
-    .court-inner::before{top:0;bottom:0}
-    .court-inner::after{top:50%;left:0;right:0;width:auto;height:4px;transform:none}
+    .court-inner::before {
+      top: 0;
+      bottom: 0;
+    }
+    .court-inner::after {
+      top: 50%;
+      left: 0;
+      right: 0;
+      width: auto;
+      height: 4px;
+      transform: none;
+    }
 
     .service-box-left,
-    .service-box-right{
-      position:absolute;
-      top:22%;
-      width:25%;
-      height:56%;
-      border:4px solid #f4ecdc;
+    .service-box-right {
+      position: absolute;
+      top: 22%;
+      width: 25%;
+      height: 56%;
+      border: 4px solid #f4ecdc;
     }
 
-    .service-box-left{left:12%}
-    .service-box-right{right:12%}
-
-    .active-side{
-      position:absolute;
-      top:10%;
-      bottom:10%;
-      width:44%;
-      border-radius:22px;
-      background:rgba(255,255,255,.08);
-      border:2px dashed rgba(255,255,255,.55);
-      transition:all .25s ease;
+    .service-box-left {
+      left: 12%;
+    }
+    .service-box-right {
+      right: 12%;
     }
 
-    .active-side.left{left:4%}
-    .active-side.right{right:4%}
-
-    .center-badge{
-      position:absolute;
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-50%);
-      background:rgba(255,248,235,.86);
-      border:1px solid rgba(95,78,53,.12);
-      border-radius:18px;
-      padding:16px 18px;
-      text-align:center;
-      box-shadow:var(--shadow);
-      min-width:220px;
+    .active-side {
+      position: absolute;
+      top: 10%;
+      bottom: 10%;
+      width: 44%;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px dashed rgba(255, 255, 255, 0.55);
+      transition: all 0.25s ease;
     }
 
-    .center-badge strong{
-      display:block;
-      font-family:'Anton',sans-serif;
-      font-size:1.5rem;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      margin-bottom:6px;
+    .active-side.left {
+      left: 4%;
+    }
+    .active-side.right {
+      right: 4%;
     }
 
-    .center-badge span{
-      color:var(--muted);
-      font-size:.92rem;
-      line-height:1.5;
+    .center-badge {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 248, 235, 0.86);
+      border: 1px solid rgba(95, 78, 53, 0.12);
+      border-radius: 18px;
+      padding: 16px 18px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      min-width: 220px;
     }
 
-    .lane-badges{
-      position:absolute;
-      left:18px;
-      right:18px;
-      top:18px;
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      z-index:2;
+    .center-badge strong {
+      display: block;
+      font-family: "Anton", sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
     }
 
-    .lane{
-      padding:10px 14px;
-      border-radius:999px;
-      background:rgba(255,248,235,.82);
-      border:1px solid rgba(95,78,53,.12);
-      font-weight:800;
-      color:var(--muted);
-      box-shadow:var(--shadow);
+    .center-badge span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
     }
 
-    .lane.active{
-      color:var(--text);
-      background:linear-gradient(135deg, #fff7e8, #f1e4c8);
+    .lane-badges {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 2;
     }
 
-    .controls{padding:22px}
-
-    .control-head{
-      display:flex;
-      justify-content:space-between;
-      align-items:end;
-      gap:12px;
-      margin-bottom:14px;
+    .lane {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 248, 235, 0.82);
+      border: 1px solid rgba(95, 78, 53, 0.12);
+      font-weight: 800;
+      color: var(--muted);
+      box-shadow: var(--shadow);
     }
 
-    .turnbox{
-      padding:18px;
-      border-radius:20px;
-      background:linear-gradient(180deg, rgba(122,160,95,.12), rgba(255,255,255,.36));
-      border:1px solid rgba(95,78,53,.08);
-      margin-bottom:16px;
+    .lane.active {
+      color: var(--text);
+      background: linear-gradient(135deg, #fff7e8, #f1e4c8);
     }
 
-    .turnbox .label{
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      font-size:.74rem;
-      font-weight:800;
-      margin-bottom:8px;
+    .controls {
+      padding: 22px;
     }
 
-    .turnbox .big{
-      font-family:'Anton',sans-serif;
-      font-size:2.4rem;
-      line-height:.95;
-      text-transform:uppercase;
-      letter-spacing:.04em;
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      margin-bottom: 14px;
     }
 
-    .dart-state{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:12px;
+    .turnbox {
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(
+        180deg,
+        rgba(122, 160, 95, 0.12),
+        rgba(255, 255, 255, 0.36)
+      );
+      border: 1px solid rgba(95, 78, 53, 0.08);
+      margin-bottom: 16px;
     }
 
-    .dart-pill{
-      min-width:78px;
-      text-align:center;
-      padding:10px 12px;
-      border-radius:14px;
-      background:#fffaf0;
-      border:1px solid rgba(95,78,53,.08);
-      font-weight:800;
+    .turnbox .label {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.74rem;
+      font-weight: 800;
+      margin-bottom: 8px;
     }
 
-    .dart-pill small{
-      display:block;
-      color:var(--muted);
-      font-size:.72rem;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      margin-bottom:4px;
+    .turnbox .big {
+      font-family: "Anton", sans-serif;
+      font-size: 2.4rem;
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
-    .readout{
-      min-height:1.4em;
-      color:var(--muted);
-      margin-bottom:14px;
-      font-size:.95rem;
+    .dart-state {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
     }
 
-    .grid-segments{
-      display:grid;
-      grid-template-columns:repeat(7,1fr);
-      gap:10px;
-      margin-bottom:14px;
+    .dart-pill {
+      min-width: 78px;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #fffaf0;
+      border: 1px solid rgba(95, 78, 53, 0.08);
+      font-weight: 800;
     }
 
-    .grid-multis{
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:10px;
-      margin-bottom:14px;
+    .dart-pill small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
     }
 
-    .grid-btn{
-      border-radius:16px;
-      padding:14px 10px;
-      background:linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.4));
-      border:1px solid rgba(95,78,53,.08);
+    .readout {
+      min-height: 1.4em;
+      color: var(--muted);
+      margin-bottom: 14px;
+      font-size: 0.95rem;
     }
 
-    .grid-btn.selected{
-      background:linear-gradient(135deg, var(--green), var(--green-2));
-      color:#11200a;
-      border-color:transparent;
-      box-shadow:0 12px 24px rgba(122,160,95,.22);
+    .grid-segments {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .grid-btn.miss.selected{
-      background:linear-gradient(135deg, #e88282, #f3aaaa);
-      color:#2b1111;
+    .grid-multis {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .action-row{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      margin-bottom:10px;
+    .grid-btn {
+      border-radius: 16px;
+      padding: 14px 10px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.62),
+        rgba(255, 255, 255, 0.4)
+      );
+      border: 1px solid rgba(95, 78, 53, 0.08);
     }
 
-    .control-btn{
-      border-radius:16px;
-      padding:14px 16px;
-      border:1px solid rgba(95,78,53,.08);
-      background:rgba(255,255,255,.52);
+    .grid-btn.selected {
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      color: #11200a;
+      border-color: transparent;
+      box-shadow: 0 12px 24px rgba(122, 160, 95, 0.22);
     }
 
-    .control-btn.primary{
-      background:linear-gradient(135deg, var(--green), var(--green-2));
-      color:#11200a;
-      border-color:transparent;
+    .grid-btn.miss.selected {
+      background: linear-gradient(135deg, #e88282, #f3aaaa);
+      color: #2b1111;
     }
 
-    .control-btn.warn{
-      background:linear-gradient(135deg, #9a4949, #d36b6b);
-      color:#fff;
-      border-color:transparent;
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    .control-btn.gold{
-      background:linear-gradient(135deg, #c9983d, #e9c36d);
-      color:#2b1c02;
-      border-color:transparent;
+    .control-btn {
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(95, 78, 53, 0.08);
+      background: rgba(255, 255, 255, 0.52);
     }
 
-    .mini-row{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
+    .control-btn.primary {
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      color: #11200a;
+      border-color: transparent;
     }
 
-    .history{padding:22px}
-
-    .timeline{
-      display:grid;
-      gap:12px;
-      max-height:760px;
-      overflow:auto;
-      padding-right:4px;
+    .control-btn.warn {
+      background: linear-gradient(135deg, #9a4949, #d36b6b);
+      color: #fff;
+      border-color: transparent;
     }
 
-    .item{
-      padding:16px;
-      border-radius:18px;
-      background:rgba(255,255,255,.46);
-      border:1px solid rgba(95,78,53,.08);
+    .control-btn.gold {
+      background: linear-gradient(135deg, #c9983d, #e9c36d);
+      color: #2b1c02;
+      border-color: transparent;
     }
 
-    .item strong{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:8px;
-      font-size:1rem;
+    .mini-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
 
-    .item span{
-      color:var(--muted);
-      font-size:.92rem;
-      line-height:1.55;
+    .history {
+      padding: 22px;
     }
 
-    .reveal{
-      opacity:0;
-      transform:translateY(18px);
-      animation:rise .7s ease forwards;
-    }
-    .delay-1{animation-delay:.08s}
-    .delay-2{animation-delay:.16s}
-    .delay-3{animation-delay:.24s}
-
-    .observe{
-      opacity:0;
-      transform:translateY(18px);
-      transition:opacity .6s ease, transform .6s ease;
-    }
-    .observe.in{opacity:1;transform:translateY(0)}
-
-    @keyframes rise{
-      to{opacity:1;transform:translateY(0)}
+    .timeline {
+      display: grid;
+      gap: 12px;
+      max-height: 760px;
+      overflow: auto;
+      padding-right: 4px;
     }
 
-    @media (max-width: 1180px){
-      .hero,.main{grid-template-columns:1fr}
+    .item {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.46);
+      border: 1px solid rgba(95, 78, 53, 0.08);
     }
 
-    @media (max-width: 820px){
-      .app{width:min(100% - 18px, var(--max))}
-      .topbar{flex-direction:column}
-      .intro,.box,.court-panel,.controls,.history{padding:18px}
-      .rule-grid{grid-template-columns:1fr}
-      .player-form{grid-template-columns:1fr}
-      .meta-grid{grid-template-columns:repeat(2,1fr)}
-      .scoreline{grid-template-columns:1fr}
-      .versus{text-align:center}
-      .grid-segments{grid-template-columns:repeat(4,1fr)}
-      .grid-multis{grid-template-columns:repeat(3,1fr)}
-      .action-row,.mini-row{grid-template-columns:1fr}
-      .center-badge{min-width:180px}
+    .item strong {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .item span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: rise 0.7s ease forwards;
+    }
+    .delay-1 {
+      animation-delay: 0.08s;
+    }
+    .delay-2 {
+      animation-delay: 0.16s;
+    }
+    .delay-3 {
+      animation-delay: 0.24s;
+    }
+
+    .observe {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .observe.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes rise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .hero,
+      .main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        width: min(100% - 18px, var(--max));
+      }
+      .topbar {
+        flex-direction: column;
+      }
+      .intro,
+      .box,
+      .court-panel,
+      .controls,
+      .history {
+        padding: 18px;
+      }
+      .rule-grid {
+        grid-template-columns: 1fr;
+      }
+      .player-form {
+        grid-template-columns: 1fr;
+      }
+      .meta-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .scoreline {
+        grid-template-columns: 1fr;
+      }
+      .versus {
+        text-align: center;
+      }
+      .grid-segments {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .grid-multis {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .action-row,
+      .mini-row {
+        grid-template-columns: 1fr;
+      }
+      .center-badge {
+        min-width: 180px;
+      }
     }
   </style>
 </head>
@@ -729,19 +852,39 @@
     <header class="topbar reveal">
       <div class="brand">
         <div class="logo" aria-hidden="true">
-          <svg viewBox="0 0 64 64" width="40" height="40" fill="none">
-            <circle cx="32" cy="32" r="18" fill="#d5a64d" opacity=".16"/>
-            <circle cx="32" cy="32" r="18" stroke="#d5a64d" stroke-width="3"/>
-            <path d="M22 20C30 28 34 36 42 44" stroke="#7aa05f" stroke-width="3" stroke-linecap="round"/>
-            <path d="M42 20C34 28 30 36 22 44" stroke="#7aa05f" stroke-width="3" stroke-linecap="round"/>
+          <svg
+            viewBox="0 0 64 64"
+            width="40"
+            height="40"
+            fill="none"
+          >
+            <circle cx="32" cy="32" r="18" fill="#d5a64d" opacity=".16" />
+            <circle cx="32" cy="32" r="18" stroke="#d5a64d" stroke-width="3" />
+            <path
+              d="M22 20C30 28 34 36 42 44"
+              stroke="#7aa05f"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+            <path
+              d="M42 20C34 28 30 36 22 44"
+              stroke="#7aa05f"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
           </svg>
         </div>
         <div>
           <h1>Tennis Darts</h1>
-          <p>Alternate sides, lock a target, win service games, survive deuce, and take the set.</p>
+          <p>
+            Alternate sides, lock a target, win service games, survive deuce,
+            and take the set.
+          </p>
         </div>
       </div>
-      <div class="badge" id="gameStatus"><span class="dot"></span> Setup Mode</div>
+      <div class="badge" id="gameStatus"
+        ><span class="dot"></span> Setup Mode</div
+      >
     </header>
 
     <section class="hero">
@@ -749,26 +892,43 @@
         <span class="eyebrow">Rally scoring</span>
         <h2>Serve, return, and break the board.</h2>
         <p>
-          Each service game begins on the <strong>left side</strong> of the board:
-          <strong>5, 12, 9, 14, 11, 8, 16, 7, 19</strong>. The next point alternates to the <strong>right side</strong>:
-          <strong>1, 18, 4, 13, 6, 10, 15, 2, 17</strong>. Numbers <strong>20</strong> and <strong>3</strong> are the net and lose the point.
-          The server’s first valid hit sets the <strong>Target Number</strong>. A <strong>double on the first dart is an Ace</strong> and instantly wins the point.
-          After that, the server keeps hitting the target to build a score. Once the server misses the target, play passes to the returner, who must beat the server’s high score on the Target Number.
-          First to win <strong>4 service games</strong> wins the set, with tennis scoring <strong>15, 30, 40, game</strong>. At <strong>40-40</strong>, use a tiebreak.
-          If the set reaches <strong>3-3</strong>, play a set tiebreak where the server must win <strong>two consecutive points</strong>.
+          Each service game begins on the <strong>left side</strong> of the
+          board:
+          <strong>5, 12, 9, 14, 11, 8, 16, 7, 19</strong>. The next point
+          alternates to the <strong>right side</strong>:
+          <strong>1, 18, 4, 13, 6, 10, 15, 2, 17</strong>. Numbers
+          <strong>20</strong> and <strong>3</strong> are the net and lose the
+          point. The server’s first valid hit sets the <strong>Target Number</strong>.
+          A <strong>double on the first dart is an Ace</strong> and instantly
+          wins the point. After that, the server keeps hitting the target to
+          build a score. Once the server misses the target, play passes to the
+          returner, who must beat the server’s high score on the Target Number.
+          First to win <strong>4 service games</strong> wins the set, with tennis
+          scoring <strong>15, 30, 40, game</strong>. At <strong>40-40</strong>,
+          use a tiebreak. If the set reaches <strong>3-3</strong>, play a set
+          tiebreak where the server must win <strong>two consecutive points</strong>.
         </p>
         <div class="rule-grid">
           <div class="rule">
             <strong>Active side</strong>
-            <span>Only the current side’s numbers are valid. If the first two darts miss the active side, the point is lost.</span>
+            <span
+              >Only the current side’s numbers are valid. If the first two darts
+              miss the active side, the point is lost.</span
+            >
           </div>
           <div class="rule">
             <strong>Target rally</strong>
-            <span>The server establishes a target number, then tries to stack score on that same number until missing it.</span>
+            <span
+              >The server establishes a target number, then tries to stack
+              score on that same number until missing it.</span
+            >
           </div>
           <div class="rule">
             <strong>Tennis scoring</strong>
-            <span>Points progress 15 → 30 → 40 → game. Deuce uses a tiebreak. A 3-3 set uses a special set tiebreak.</span>
+            <span
+              >Points progress 15 → 30 → 40 → game. Deuce uses a tiebreak. A
+              3-3 set uses a special set tiebreak.</span
+            >
           </div>
         </div>
       </section>
@@ -777,23 +937,31 @@
         <section class="panel box reveal delay-2">
           <h3>Players</h3>
           <div class="player-form">
-            <input id="playerNameInput" type="text" placeholder="Enter player name" maxlength="24" aria-label="Player name">
+            <input
+              id="playerNameInput"
+              type="text"
+              placeholder="Enter player name"
+              maxlength="24"
+              aria-label="Player name"
+            />
             <button class="btn btn-primary" id="addPlayerBtn">Add Player</button>
           </div>
           <div class="chips" id="playerChips">
             <div class="empty">Add exactly 2 players.</div>
           </div>
-          <p class="meta" style="margin:10px 0 16px;">
+          <p class="meta" style="margin: 10px 0 16px">
             First player added serves first. Tennis Darts is played head-to-head.
           </p>
-          <button class="btn btn-primary" id="startGameBtn" style="width:100%;">Start Game</button>
+          <button class="btn btn-primary" id="startGameBtn" style="width: 100%">
+            Start Game
+          </button>
         </section>
 
         <section class="panel box reveal delay-3">
           <h3>Board Sides</h3>
-          <p class="meta" style="margin:0;">
-            <strong>Left:</strong> 5, 12, 9, 14, 11, 8, 16, 7, 19<br>
-            <strong>Right:</strong> 1, 18, 4, 13, 6, 10, 15, 2, 17<br><br>
+          <p class="meta" style="margin: 0">
+            <strong>Left:</strong> 5, 12, 9, 14, 11, 8, 16, 7, 19<br />
+            <strong>Right:</strong> 1, 18, 4, 13, 6, 10, 15, 2, 17<br /><br />
             <strong>Net:</strong> 20 and 3 lose the point immediately.
           </p>
         </section>
@@ -832,6 +1000,10 @@
               <strong>Phase</strong>
               <span id="phaseDisplay">Ready</span>
             </div>
+            <div class="meta-box">
+              <strong>Leaderboard</strong>
+              <span id="leaderboardDisplay">—</span>
+            </div>
           </div>
 
           <div class="court">
@@ -845,7 +1017,9 @@
               <div class="active-side left" id="activeSideVisual"></div>
               <div class="center-badge">
                 <strong id="scoreTextDisplay">Love - Love</strong>
-                <span id="centerSubtext">Serve to the active side and establish a target number.</span>
+                <span id="centerSubtext"
+                  >Serve to the active side and establish a target number.</span
+                >
               </div>
             </div>
           </div>
@@ -860,7 +1034,9 @@
           <div class="turnbox">
             <div class="label">Current player</div>
             <div class="big" id="currentPlayerName">—</div>
-            <div class="meta" id="targetReadout" style="margin-top:10px;">Target: start the game</div>
+            <div class="meta" id="targetReadout" style="margin-top: 10px">
+              Target: start the game
+            </div>
             <div class="dart-state" id="dartState">
               <div class="dart-pill"><small>Dart 1</small>—</div>
               <div class="dart-pill"><small>Dart 2</small>—</div>
@@ -871,7 +1047,9 @@
           <div class="turnbox">
             <div class="label">Selection</div>
             <div class="big" id="selectionBig">—</div>
-            <div class="meta" id="selectionRule" style="margin-top:10px;">Choose a segment and result, or choose bullseye or miss.</div>
+            <div class="meta" id="selectionRule" style="margin-top: 10px">
+              Choose a segment and result, or choose bullseye or miss.
+            </div>
           </div>
 
           <div class="readout" id="selectionReadout">Selected: none</div>
@@ -925,51 +1103,52 @@
 
     let match = null;
 
-    const playerNameInput = document.getElementById('playerNameInput');
-    const addPlayerBtn = document.getElementById('addPlayerBtn');
-    const startGameBtn = document.getElementById('startGameBtn');
-    const playerChips = document.getElementById('playerChips');
+    const playerNameInput = document.getElementById("playerNameInput");
+    const addPlayerBtn = document.getElementById("addPlayerBtn");
+    const startGameBtn = document.getElementById("startGameBtn");
+    const playerChips = document.getElementById("playerChips");
 
-    const p1NameLabel = document.getElementById('p1NameLabel');
-    const p2NameLabel = document.getElementById('p2NameLabel');
-    const p1GameScore = document.getElementById('p1GameScore');
-    const p2GameScore = document.getElementById('p2GameScore');
-    const serverDisplay = document.getElementById('serverDisplay');
-    const receiverDisplay = document.getElementById('receiverDisplay');
-    const targetDisplay = document.getElementById('targetDisplay');
-    const phaseDisplay = document.getElementById('phaseDisplay');
-    const scoreTextDisplay = document.getElementById('scoreTextDisplay');
-    const centerSubtext = document.getElementById('centerSubtext');
-    const leftLaneBadge = document.getElementById('leftLaneBadge');
-    const rightLaneBadge = document.getElementById('rightLaneBadge');
-    const activeSideVisual = document.getElementById('activeSideVisual');
+    const p1NameLabel = document.getElementById("p1NameLabel");
+    const p2NameLabel = document.getElementById("p2NameLabel");
+    const p1GameScore = document.getElementById("p1GameScore");
+    const p2GameScore = document.getElementById("p2GameScore");
+    const serverDisplay = document.getElementById("serverDisplay");
+    const receiverDisplay = document.getElementById("receiverDisplay");
+    const targetDisplay = document.getElementById("targetDisplay");
+    const phaseDisplay = document.getElementById("phaseDisplay");
+    const scoreTextDisplay = document.getElementById("scoreTextDisplay");
+    const centerSubtext = document.getElementById("centerSubtext");
+    const leftLaneBadge = document.getElementById("leftLaneBadge");
+    const rightLaneBadge = document.getElementById("rightLaneBadge");
+    const activeSideVisual = document.getElementById("activeSideVisual");
+    const leaderboardDisplay = document.getElementById("leaderboardDisplay");
 
-    const gameStatus = document.getElementById('gameStatus');
-    const turnBadge = document.getElementById('turnBadge');
-    const currentPlayerName = document.getElementById('currentPlayerName');
-    const targetReadout = document.getElementById('targetReadout');
-    const dartState = document.getElementById('dartState');
-    const selectionBig = document.getElementById('selectionBig');
-    const selectionRule = document.getElementById('selectionRule');
-    const selectionReadout = document.getElementById('selectionReadout');
-    const segmentGrid = document.getElementById('segmentGrid');
-    const recordBtn = document.getElementById('recordBtn');
-    const endTurnBtn = document.getElementById('endTurnBtn');
-    const undoBtn = document.getElementById('undoBtn');
-    const newGameBtn = document.getElementById('newGameBtn');
-    const awardP1Btn = document.getElementById('awardP1Btn');
-    const awardP2Btn = document.getElementById('awardP2Btn');
-    const historyList = document.getElementById('historyList');
+    const gameStatus = document.getElementById("gameStatus");
+    const turnBadge = document.getElementById("turnBadge");
+    const currentPlayerName = document.getElementById("currentPlayerName");
+    const targetReadout = document.getElementById("targetReadout");
+    const dartState = document.getElementById("dartState");
+    const selectionBig = document.getElementById("selectionBig");
+    const selectionRule = document.getElementById("selectionRule");
+    const selectionReadout = document.getElementById("selectionReadout");
+    const segmentGrid = document.getElementById("segmentGrid");
+    const recordBtn = document.getElementById("recordBtn");
+    const endTurnBtn = document.getElementById("endTurnBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const newGameBtn = document.getElementById("newGameBtn");
+    const awardP1Btn = document.getElementById("awardP1Btn");
+    const awardP2Btn = document.getElementById("awardP2Btn");
+    const historyList = document.getElementById("historyList");
 
-    function createSegmentButtons(){
-      segmentGrid.innerHTML = '';
-      for(let i=1;i<=20;i++){
-        const btn = document.createElement('button');
-        btn.className = 'grid-btn';
+    function createSegmentButtons() {
+      segmentGrid.innerHTML = "";
+      for (let i = 1; i <= 20; i++) {
+        const btn = document.createElement("button");
+        btn.className = "grid-btn";
         btn.textContent = i;
         btn.dataset.segment = i;
-        btn.addEventListener('click', () => {
-          if(!gameStarted || gameOver) return;
+        btn.addEventListener("click", () => {
+          if (!gameStarted || gameOver) return;
           selectedSegment = i;
           updateSelectionUI();
         });
@@ -977,52 +1156,56 @@
       }
     }
 
-    function addPlayer(){
+    function addPlayer() {
       const name = playerNameInput.value.trim();
-      if(!name) return;
-      if(players.length >= 2){
-        alert('Tennis Darts uses exactly 2 players.');
+      if (!name) return;
+      if (players.length >= 2) {
+        alert("Tennis Darts uses exactly 2 players.");
         return;
       }
-      if(players.some(p => p.name.toLowerCase() === name.toLowerCase())){
-        alert('Player name already added.');
+      if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+        alert("Player name already added.");
         return;
       }
       players.push({
         name,
-        gamesWon: 0
+        gamesWon: 0,
       });
-      playerNameInput.value = '';
+      playerNameInput.value = "";
       renderAll();
     }
 
-    function removePlayer(index){
-      if(gameStarted) return;
-      players.splice(index,1);
+    function removePlayer(index) {
+      if (gameStarted) return;
+      players.splice(index, 1);
       renderAll();
     }
 
-    function renderPlayerChips(){
-      playerChips.innerHTML = '';
-      if(!players.length){
+    function renderPlayerChips() {
+      playerChips.innerHTML = "";
+      if (!players.length) {
         playerChips.innerHTML = '<div class="empty">Add exactly 2 players.</div>';
         return;
       }
       players.forEach((p, idx) => {
-        const chip = document.createElement('div');
-        chip.className = 'chip';
+        const chip = document.createElement("div");
+        chip.className = "chip";
         chip.innerHTML = `
-          <span>${escapeHtml(p.name)}${idx === 0 ? ' · First Server' : ''}</span>
-          <button ${gameStarted ? 'disabled' : ''} aria-label="Remove ${escapeHtml(p.name)}">×</button>
+          <span>${escapeHtml(p.name)}${idx === 0 ? " · First Server" : ""}</span>
+          <button ${gameStarted ? "disabled" : ""} aria-label="Remove ${escapeHtml(
+          p.name
+        )}">×</button>
         `;
-        chip.querySelector('button').addEventListener('click', () => removePlayer(idx));
+        chip.querySelector("button").addEventListener("click", () =>
+          removePlayer(idx)
+        );
         playerChips.appendChild(chip);
       });
     }
 
-    function startGame(){
-      if(players.length !== 2){
-        alert('Add exactly 2 players to start.');
+    function startGame() {
+      if (players.length !== 2) {
+        alert("Add exactly 2 players to start.");
         return;
       }
 
@@ -1033,14 +1216,14 @@
       history = [];
       actionStack = [];
 
-      players.forEach(p => p.gamesWon = 0);
+      players.forEach((p) => (p.gamesWon = 0));
 
       match = {
         serverIndex: 0,
         receiverIndex: 1,
         currentThrowerIndex: 0,
-        activeSide: 'left',
-        phase: 'server-establish',
+        activeSide: "left",
+        phase: "server-establish",
         targetNumber: null,
         serverScore: 0,
         receiverScore: 0,
@@ -1050,62 +1233,68 @@
         tiebreakMode: null, // null, 'deuce', 'set'
         consecutiveSetTbWinsByServer: 0,
         currentGameNumber: 1,
-        maxGames: 7
+        maxGames: 7,
       };
 
       gameStatus.innerHTML = '<span class="dot"></span> Match Live';
-      logEvent('Match started. Server begins on the left side.');
+      logEvent("Match started. Server begins on the left side.");
       renderAll();
     }
 
-    function newGame(){
-      if(!players.length) return;
-      if(!confirm('Start a new Tennis Darts match and reset the set?')) return;
+    function newGame() {
+      if (!players.length) return;
+      if (!confirm("Start a new Tennis Darts match and reset the set?")) return;
       startGame();
     }
 
-    function getCurrentPlayer(){
+    function getCurrentPlayer() {
       return players[match?.currentThrowerIndex] || null;
     }
 
-    function getServer(){
+    function getServer() {
       return players[match?.serverIndex] || null;
     }
 
-    function getReceiver(){
+    function getReceiver() {
       return players[match?.receiverIndex] || null;
     }
 
-    function getActiveSideNumbers(){
-      return match?.activeSide === 'left' ? LEFT_SIDE : RIGHT_SIDE;
+    function getActiveSideNumbers() {
+      return match?.activeSide === "left" ? LEFT_SIDE : RIGHT_SIDE;
     }
 
-    function updateSelectionUI(){
-      document.querySelectorAll('[data-segment]').forEach(btn => {
-        btn.classList.toggle('selected', Number(btn.dataset.segment) === selectedSegment);
+    function updateSelectionUI() {
+      document.querySelectorAll("[data-segment]").forEach((btn) => {
+        btn.classList.toggle(Number(btn.dataset.segment) === selectedSegment);
       });
-      document.querySelectorAll('[data-multi]').forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.multi === selectedMulti);
+      document.querySelectorAll("[data-multi]").forEach((btn) => {
+        btn.classList.toggle(btn.dataset.multi === selectedMulti);
       });
 
-      let text = 'Selected: none';
-      let big = '—';
+      let text = "Selected: none";
+      let big = "—";
 
-      if(selectedMulti === 'B'){
-        text = 'Selected: Bullseye';
-        big = 'Bull';
-      } else if(selectedMulti === 'M'){
-        text = 'Selected: Miss';
-        big = 'Miss';
-      } else if(selectedSegment && selectedMulti){
-        const labels = { S:'Single', D:'Double', T:'Triple' };
+      if (selectedMulti === "B") {
+        text = "Selected: Bullseye";
+        big = "Bull";
+      } else if (selectedMulti === "M") {
+        text = "Selected: Miss";
+        big = "Miss";
+      } else if (selectedSegment && selectedMulti) {
+        const labels = { S: "Single", D: "Double", T: "Triple" };
         text = `Selected: ${labels[selectedMulti]} ${selectedSegment}`;
         big = `${labels[selectedMulti]} ${selectedSegment}`;
-      } else if(selectedSegment){
+      } else if (selectedSegment) {
         text = `Selected segment: ${selectedSegment}`;
         big = `${selectedSegment}`;
-      } else if(selectedMulti){
-        const labels = { S:'Single', D:'Double', T:'Triple', B:'Bullseye', M:'Miss' };
+      } else if (selectedMulti) {
+        const labels = {
+          S: "Single",
+          D: "Double",
+          T: "Triple",
+          B: "Bullseye",
+          M: "Miss",
+        };
         text = `Selected result: ${labels[selectedMulti]}`;
         big = labels[selectedMulti];
       }
@@ -1114,43 +1303,47 @@
       selectionBig.textContent = big;
     }
 
-    function computeThrow(){
-      if(selectedMulti === 'M') return { valid:true, label:'Miss', score:0, segment:null, multi:'M' };
-      if(selectedMulti === 'B') return { valid:true, label:'Bull', score:25, segment:25, multi:'B' };
-      if(!selectedSegment || !selectedMulti) return { valid:false };
-      const mult = { S:1, D:2, T:3 };
-      const short = { S:'S', D:'D', T:'T' };
+    function computeThrow() {
+      if (selectedMulti === "M")
+        return { valid: true, label: "Miss", score: 0, segment: null, multi: "M" };
+      if (selectedMulti === "B")
+        return { valid: true, label: "Bull", score: 25, segment: 25, multi: "B" };
+      if (!selectedSegment || !selectedMulti) return { valid: false };
+      const mult = { S: 1, D: 2, T: 3 };
+      const short = { S: "S", D: "D", T: "T" };
       return {
-        valid:true,
-        label:`${short[selectedMulti]}${selectedSegment}`,
-        score:selectedSegment * mult[selectedMulti],
-        segment:selectedSegment,
-        multi:selectedMulti
+        valid: true,
+        label: `${short[selectedMulti]}${selectedSegment}`,
+        score: selectedSegment * mult[selectedMulti],
+        segment: selectedSegment,
+        multi: selectedMulti,
       };
     }
 
-    function isValidSideHit(dart){
+    function isValidSideHit(dart) {
       return dart.segment && getActiveSideNumbers().includes(dart.segment);
     }
 
-    function isNet(dart){
+    function isNet(dart) {
       return dart.segment && NET_NUMBERS.includes(dart.segment);
     }
 
-    function activeDartsArray(){
-      return match.currentThrowerIndex === match.serverIndex ? match.serverDarts : match.receiverDarts;
+    function activeDartsArray() {
+      return match.currentThrowerIndex === match.serverIndex
+        ? match.serverDarts
+        : match.receiverDarts;
     }
 
-    function recordDart(){
-      if(!gameStarted){
-        alert('Start the game first.');
+    function recordDart() {
+      if (!gameStarted) {
+        alert("Start the game first.");
         return;
       }
-      if(gameOver) return;
+      if (gameOver) return;
 
       const result = computeThrow();
-      if(!result.valid){
-        alert('Select a segment and result, or choose Bullseye or Miss.');
+      if (!result.valid) {
+        alert("Select a segment and result, or choose Bullseye or Miss.");
         return;
       }
 
@@ -1160,7 +1353,7 @@
       const darts = activeDartsArray();
       darts.push({ ...result });
 
-      if(isNet(result)){
+      if (isNet(result)) {
         logEvent(`${thrower.name} hit the net (${result.label}). Point lost.`);
         concludePoint(isServerTurn ? match.receiverIndex : match.serverIndex);
         actionStack.push({ before });
@@ -1168,13 +1361,17 @@
         return;
       }
 
-      if(!isValidSideHit(result)){
-        if(darts.length <= 2){
+      if (!isValidSideHit(result)) {
+        if (darts.length <= 2) {
           match.firstTwoMissCount++;
         }
-        logEvent(`${thrower.name} missed the active ${match.activeSide} side with ${result.label}.`);
-        if(darts.length <= 2 && match.firstTwoMissCount >= 2){
-          logEvent(`${thrower.name} failed to hit the active side in the first two darts. Point lost.`);
+        logEvent(
+          `${thrower.name} missed the active ${match.activeSide} side with ${result.label}.`
+        );
+        if (darts.length <= 2 && match.firstTwoMissCount >= 2) {
+          logEvent(
+            `${thrower.name} failed to hit the active side in the first two darts. Point lost.`
+          );
           concludePoint(isServerTurn ? match.receiverIndex : match.serverIndex);
           actionStack.push({ before });
           renderAll();
@@ -1190,98 +1387,107 @@
       renderAll();
     }
 
-    function handleRallyLogic(result, thrower, isServerTurn, darts){
-      if(match.tiebreakMode === 'deuce' || match.tiebreakMode === 'set'){
+    // Modified handleRallyLogic for returner: no need to open target, just score more than server
+    function handleRallyLogic(result, thrower, isServerTurn, darts) {
+      if (match.tiebreakMode === "deuce" || match.tiebreakMode === "set") {
         handleTiebreakThrow(result, thrower, isServerTurn, darts);
         return;
       }
 
-      if(isServerTurn){
-        if(match.phase === 'server-establish'){
-          if(isValidSideHit(result)){
+      if (isServerTurn) {
+        if (match.phase === "server-establish") {
+          if (isValidSideHit(result)) {
             match.targetNumber = result.segment;
-            if(darts.length === 1 && result.multi === 'D'){
+            if (darts.length === 1 && result.multi === "D") {
               logEvent(`${thrower.name} served an Ace on Double ${result.segment}.`);
               concludePoint(match.serverIndex);
               return;
             }
             match.serverScore += result.segment;
-            match.phase = 'server-rally';
-            logEvent(`${thrower.name} established target ${match.targetNumber} and opened with ${result.segment}.`);
-          } else if(darts.length >= 3){
+            match.phase = "server-rally";
+            logEvent(
+              `${thrower.name} established target ${match.targetNumber} and opened with ${result.segment}.`
+            );
+          } else if (darts.length >= 3) {
             logEvent(`${thrower.name} failed to establish a target. Receiver wins the point.`);
             concludePoint(match.receiverIndex);
             return;
           }
-        } else if(match.phase === 'server-rally'){
-          if(result.segment === match.targetNumber){
+        } else if (match.phase === "server-rally") {
+          if (result.segment === match.targetNumber) {
             match.serverScore += match.targetNumber;
-            logEvent(`${thrower.name} added ${match.targetNumber}. Server total is ${match.serverScore}.`);
+            logEvent(
+              `${thrower.name} added ${match.targetNumber}. Server total is ${match.serverScore}.`
+            );
           } else {
-            match.phase = 'receiver-chase';
+            match.phase = "receiver-chase";
             match.currentThrowerIndex = match.receiverIndex;
             match.firstTwoMissCount = 0;
             logEvent(`${thrower.name} missed the target. Play passes to ${getReceiver().name}.`);
           }
         }
       } else {
-        if(match.phase !== 'receiver-chase') return;
+        if (match.phase !== "receiver-chase") return;
 
-        if(result.segment === match.targetNumber){
+        // Returner does NOT need to open target, just score more than server
+        if (result.segment === match.targetNumber) {
           match.receiverScore += match.targetNumber;
-          logEvent(`${thrower.name} matched target ${match.targetNumber}. Return total is ${match.receiverScore}.`);
-          // Receiver must score MORE than server to win point
-          if(match.receiverScore > match.serverScore){
+          logEvent(
+            `${thrower.name} scored ${match.targetNumber}. Return total is ${match.receiverScore}.`
+          );
+          if (match.receiverScore > match.serverScore) {
             logEvent(`${thrower.name} beat the server's score.`);
             concludePoint(match.receiverIndex);
             return;
           }
         } else {
-          logEvent(`${thrower.name} failed to hit the target number.`);
+          logEvent(`${thrower.name} missed the target number.`);
         }
 
-        if(darts.length >= 3){
-          // Receiver must have strictly greater score to win, else server wins
-          const winner = match.receiverScore > match.serverScore ? match.receiverIndex : match.serverIndex;
+        if (darts.length >= 3) {
+          const winner =
+            match.receiverScore > match.serverScore ? match.receiverIndex : match.serverIndex;
           logEvent(`${players[winner].name} wins the service point.`);
           concludePoint(winner);
         }
       }
 
-      if(match.phase === 'server-rally' && darts.length >= 3){
-        match.phase = 'receiver-chase';
+      if (match.phase === "server-rally" && darts.length >= 3) {
+        match.phase = "receiver-chase";
         match.currentThrowerIndex = match.receiverIndex;
         match.firstTwoMissCount = 0;
         logEvent(`${thrower.name}'s turn ends. ${getReceiver().name} must beat ${match.serverScore}.`);
       }
     }
 
-    function handleTiebreakThrow(result, thrower, isServerTurn, darts){
-      if(isServerTurn && darts.length === 1 && isValidSideHit(result) && result.multi === 'D'){
+    // ... rest of the code unchanged ...
+
+    function handleTiebreakThrow(result, thrower, isServerTurn, darts) {
+      if (isServerTurn && darts.length === 1 && isValidSideHit(result) && result.multi === "D") {
         logEvent(`${thrower.name} hit an Ace in the tiebreak.`);
         concludePoint(match.serverIndex);
         return;
       }
 
-      if(isValidSideHit(result)){
-        if(!match.targetNumber) {
+      if (isValidSideHit(result)) {
+        if (!match.targetNumber) {
           match.targetNumber = result.segment;
           logEvent(`${thrower.name} set tiebreak target ${match.targetNumber}.`);
         }
-        if(result.segment === match.targetNumber){
-          if(isServerTurn) match.serverScore += match.targetNumber;
+        if (result.segment === match.targetNumber) {
+          if (isServerTurn) match.serverScore += match.targetNumber;
           else match.receiverScore += match.targetNumber;
           logEvent(`${thrower.name} scored ${match.targetNumber} in the tiebreak.`);
         }
       }
 
-      if(darts.length >= 3){
-        if(isServerTurn){
+      if (darts.length >= 3) {
+        if (isServerTurn) {
           match.currentThrowerIndex = match.receiverIndex;
           match.firstTwoMissCount = 0;
           logEvent(`${getReceiver().name} now chases the tiebreak total.`);
         } else {
-          if(match.receiverScore > match.serverScore){
+          if (match.receiverScore > match.serverScore) {
             concludePoint(match.receiverIndex);
           } else {
             concludePoint(match.serverIndex);
@@ -1290,16 +1496,16 @@
       }
     }
 
-    function concludePoint(winnerIndex){
+    function concludePoint(winnerIndex) {
       const winner = players[winnerIndex];
-      if(match.tiebreakMode === 'set'){
-        if(winnerIndex === match.serverIndex){
+      if (match.tiebreakMode === "set") {
+        if (winnerIndex === match.serverIndex) {
           match.consecutiveSetTbWinsByServer += 1;
         } else {
           match.consecutiveSetTbWinsByServer = 0;
         }
 
-        if(match.consecutiveSetTbWinsByServer >= 2){
+        if (match.consecutiveSetTbWinsByServer >= 2) {
           winner.gamesWon = 4;
           gameOver = true;
           gameStatus.innerHTML = '<span class="dot"></span> Winner';
@@ -1318,14 +1524,14 @@
       awardGamePoint(winnerIndex);
     }
 
-    function awardGamePoint(winnerIndex){
+    function awardGamePoint(winnerIndex) {
       const winner = players[winnerIndex];
       winner.gamesWon += 1;
 
       logEvent(`${winner.name} wins the service game.`);
 
       // Check if match is won (best of 7)
-      if(winner.gamesWon > Math.floor(match.maxGames / 2)){
+      if (winner.gamesWon > Math.floor(match.maxGames / 2)) {
         gameOver = true;
         gameStatus.innerHTML = '<span class="dot"></span> Winner';
         alert(`${winner.name} wins Tennis Darts!`);
@@ -1335,12 +1541,16 @@
       }
 
       // Check for tiebreak conditions
-      if(players[0].gamesWon === 3 && players[1].gamesWon === 3){
-        match.tiebreakMode = 'set';
+      if (players[0].gamesWon === 3 && players[1].gamesWon === 3) {
+        match.tiebreakMode = "set";
         match.consecutiveSetTbWinsByServer = 0;
         logEvent(`Set score is 3-3. Set tiebreak begins.`);
-      } else if(players[0].gamesWon >= 3 && players[1].gamesWon >= 3 && players[0].gamesWon === players[1].gamesWon){
-        match.tiebreakMode = 'deuce';
+      } else if (
+        players[0].gamesWon >= 3 &&
+        players[1].gamesWon >= 3 &&
+        players[0].gamesWon === players[1].gamesWon
+      ) {
+        match.tiebreakMode = "deuce";
         logEvent(`Deuce reached. Regular tiebreak begins.`);
       } else {
         match.tiebreakMode = null;
@@ -1351,31 +1561,31 @@
 
       // Alternate server starting each new game:
       // Player 2 serves from left side on next game, then alternate thereafter
-      if(match.currentGameNumber % 2 === 1){
+      if (match.currentGameNumber % 2 === 1) {
         // Odd game number: player 1 serves from left side
         match.serverIndex = 0;
         match.receiverIndex = 1;
-        match.activeSide = 'left';
+        match.activeSide = "left";
       } else {
         // Even game number: player 2 serves from left side
         match.serverIndex = 1;
         match.receiverIndex = 0;
-        match.activeSide = 'left';
+        match.activeSide = "left";
       }
 
       resetPointState();
       logEvent(`${players[match.serverIndex].name} serves next on the ${match.activeSide} side.`);
     }
 
-    function rotateAfterPoint(pointWinnerIndex){
+    function rotateAfterPoint(pointWinnerIndex) {
       // This function is now handled inside awardGamePoint with server alternation
       // Kept for compatibility if needed elsewhere
     }
 
-    function resetPointState(){
-      if(!match) return;
+    function resetPointState() {
+      if (!match) return;
       match.currentThrowerIndex = match.serverIndex;
-      match.phase = 'server-establish';
+      match.phase = "server-establish";
       match.targetNumber = null;
       match.serverScore = 0;
       match.receiverScore = 0;
@@ -1384,26 +1594,29 @@
       match.firstTwoMissCount = 0;
     }
 
-    function isSetTiebreakRequired(){
+    function isSetTiebreakRequired() {
       return players[0].gamesWon === 3 && players[1].gamesWon === 3;
     }
 
-    function endTurn(){
-      if(!gameStarted || gameOver) return;
+    function endTurn() {
+      if (!gameStarted || gameOver) return;
       const before = snapshotState();
 
-      if(match.currentThrowerIndex === match.serverIndex){
-        if(match.phase === 'server-establish'){
-          logEvent(`${getServer().name} ended the turn without establishing target. Receiver wins the point.`);
+      if (match.currentThrowerIndex === match.serverIndex) {
+        if (match.phase === "server-establish") {
+          logEvent(
+            `${getServer().name} ended the turn without establishing target. Receiver wins the point.`
+          );
           concludePoint(match.receiverIndex);
         } else {
-          match.phase = 'receiver-chase';
+          match.phase = "receiver-chase";
           match.currentThrowerIndex = match.receiverIndex;
           match.firstTwoMissCount = 0;
           logEvent(`${getReceiver().name} now tries to beat ${match.serverScore}.`);
         }
       } else {
-        const winner = match.receiverScore > match.serverScore ? match.receiverIndex : match.serverIndex;
+        const winner =
+          match.receiverScore > match.serverScore ? match.receiverIndex : match.serverIndex;
         concludePoint(winner);
       }
 
@@ -1411,8 +1624,8 @@
       renderAll();
     }
 
-    function manualAward(index){
-      if(!gameStarted || gameOver) return;
+    function manualAward(index) {
+      if (!gameStarted || gameOver) return;
       const before = snapshotState();
       logEvent(`Manual award: ${players[index].name} receives the point.`);
       concludePoint(index);
@@ -1420,84 +1633,112 @@
       renderAll();
     }
 
-    function scoreToText(v){
-      const map = ['Love', '15', '30', '40', 'Game'];
+    function scoreToText(v) {
+      const map = ["Love", "15", "30", "40", "Game"];
       return map[Math.min(v, 4)];
     }
 
-    function renderCourt(){
+    function renderCourt() {
       const p1 = players[0];
       const p2 = players[1];
 
-      p1NameLabel.textContent = p1 ? p1.name : 'Player 1';
-      p2NameLabel.textContent = p2 ? p2.name : 'Player 2';
-      p1GameScore.textContent = p1 ? scoreToText(p1.gamesWon) : 'Love';
-      p2GameScore.textContent = p2 ? scoreToText(p2.gamesWon) : 'Love';
+      p1NameLabel.textContent = p1 ? p1.name : "Player 1";
+      p2NameLabel.textContent = p2 ? p2.name : "Player 2";
+      p1GameScore.textContent = p1 ? scoreToText(p1.gamesWon) : "Love";
+      p2GameScore.textContent = p2 ? scoreToText(p2.gamesWon) : "Love";
 
       const server = getServer();
       const receiver = getReceiver();
-      serverDisplay.textContent = server ? server.name : '—';
-      receiverDisplay.textContent = receiver ? receiver.name : '—';
-      targetDisplay.textContent = match?.targetNumber || '—';
-      phaseDisplay.textContent = match ? match.phase.replaceAll('-', ' ') : 'Ready';
+      serverDisplay.textContent = server ? server.name : "—";
+      receiverDisplay.textContent = receiver ? receiver.name : "—";
+      targetDisplay.textContent = match?.targetNumber || "—";
+      phaseDisplay.textContent = match ? match.phase.replaceAll("-", " ") : "Ready";
 
-      leftLaneBadge.classList.toggle('active', match?.activeSide === 'left');
-      rightLaneBadge.classList.toggle('active', match?.activeSide === 'right');
-      activeSideVisual.className = `active-side ${match?.activeSide === 'right' ? 'right' : 'left'}`;
+      leftLaneBadge.classList.toggle("active", match?.activeSide === "left");
+      rightLaneBadge.classList.toggle("active", match?.activeSide === "right");
+      activeSideVisual.className = `active-side ${
+        match?.activeSide === "right" ? "right" : "left"
+      }`;
 
-      scoreTextDisplay.textContent = `${p1 ? scoreToText(p1.gamesWon) : 'Love'} - ${p2 ? scoreToText(p2.gamesWon) : 'Love'}`;
+      scoreTextDisplay.textContent = `${p1 ? scoreToText(p1.gamesWon) : "Love"} - ${
+        p2 ? scoreToText(p2.gamesWon) : "Love"
+      }`;
 
-      if(match?.tiebreakMode === 'set'){
-        centerSubtext.textContent = 'Set tiebreak in play. Server must win two consecutive points.';
-      } else if(match?.tiebreakMode === 'deuce'){
-        centerSubtext.textContent = 'Deuce tiebreak in play. Higher target total wins the point.';
-      } else if(match?.targetNumber){
+      if (match?.tiebreakMode === "set") {
+        centerSubtext.textContent =
+          "Set tiebreak in play. Server must win two consecutive points.";
+      } else if (match?.tiebreakMode === "deuce") {
+        centerSubtext.textContent =
+          "Deuce tiebreak in play. Higher target total wins the point.";
+      } else if (match?.targetNumber) {
         centerSubtext.textContent = `Target is ${match.targetNumber}. Server ${match.serverScore}, Receiver ${match.receiverScore}.`;
       } else {
-        centerSubtext.textContent = 'Serve to the active side and establish a target number.';
+        centerSubtext.textContent = "Serve to the active side and establish a target number.";
       }
+
+      renderLeaderboard();
     }
 
-    function renderCurrent(){
-      const current = getCurrentPlayer();
-      currentPlayerName.textContent = current ? current.name : '—';
+    function renderLeaderboard() {
+      if (players.length < 2) {
+        leaderboardDisplay.textContent = "—";
+        return;
+      }
+      // Sort players by gamesWon descending
+      const sorted = [...players].sort((a, b) => b.gamesWon - a.gamesWon);
+      leaderboardDisplay.textContent = sorted
+        .map((p, i) => `${i + 1}. ${p.name} (${scoreToText(p.gamesWon)})`)
+        .join(" | ");
+    }
 
-      if(!gameStarted){
+    function renderCurrent() {
+      const current = getCurrentPlayer();
+      currentPlayerName.textContent = current ? current.name : "—";
+
+      if (!gameStarted) {
         turnBadge.innerHTML = '<span class="dot"></span> Waiting';
-        targetReadout.textContent = 'Target: start the game';
-      } else if(gameOver){
+        targetReadout.textContent = "Target: start the game";
+      } else if (gameOver) {
         turnBadge.innerHTML = '<span class="dot"></span> Match Complete';
-        targetReadout.textContent = 'Match complete';
+        targetReadout.textContent = "Match complete";
       } else {
         turnBadge.innerHTML = `<span class="dot"></span> ${escapeHtml(current.name)} Throwing`;
-        const sideText = match.activeSide === 'left'
-          ? `Left side: ${LEFT_SIDE.join(', ')}`
-          : `Right side: ${RIGHT_SIDE.join(', ')}`;
+        const sideText =
+          match.activeSide === "left"
+            ? `Left side: ${LEFT_SIDE.join(", ")}`
+            : `Right side: ${RIGHT_SIDE.join(", ")}`;
         targetReadout.textContent = match.targetNumber
           ? `Target ${match.targetNumber} · ${sideText}`
           : `Establish target · ${sideText}`;
       }
 
-      dartState.innerHTML = '';
+      dartState.innerHTML = "";
       const darts = match
-        ? (match.currentThrowerIndex === match.serverIndex ? match.serverDarts : match.receiverDarts)
+        ? match.currentThrowerIndex === match.serverIndex
+          ? match.serverDarts
+          : match.receiverDarts
         : [];
 
-      for(let i=0;i<3;i++){
-        const pill = document.createElement('div');
-        pill.className = 'dart-pill';
-        pill.innerHTML = `<small>Dart ${i+1}</small>${darts[i] ? escapeHtml(darts[i].label) : '—'}`;
+      for (let i = 0; i < 3; i++) {
+        const pill = document.createElement("div");
+        pill.className = "dart-pill";
+        pill.innerHTML = `<small>Dart ${i + 1}</small>${
+          darts[i] ? escapeHtml(darts[i].label) : "—"
+        }`;
         dartState.appendChild(pill);
       }
 
-      if(match){
-        if(match.tiebreakMode === 'set'){
-          selectionRule.textContent = 'Set tiebreak: ace wins instantly, otherwise higher target total wins. Server needs two consecutive points.';
-        } else if(match.tiebreakMode === 'deuce'){
-          selectionRule.textContent = 'Deuce tiebreak: ace wins instantly, otherwise higher target total wins.';
-        } else if(match.phase === 'server-establish'){
-          selectionRule.textContent = 'Server must hit a valid active-side number to establish the target. Double on dart 1 is an ace.';
-        } else if(match.phase === 'server-rally'){
+      if (match) {
+        if (match.tiebreakMode === "set") {
+          selectionRule.textContent =
+            "Set tiebreak: ace wins instantly, otherwise higher target total wins. Server needs two consecutive points.";
+        } else if (match.tiebreakMode === "deuce") {
+          selectionRule.textContent =
+            "Deuce tiebreak: ace wins instantly, otherwise higher target total wins.";
+        } else if (match.phase === "server-establish") {
+          selectionRule.textContent =
+            "Server must hit a valid active-side number to establish the target. Double on dart 1 is an ace.";
+        } else if (match.phase === "server-rally") {
           selectionRule.textContent = `Server keeps aiming at ${match.targetNumber} to build a score.`;
         } else {
           selectionRule.textContent = `Receiver must hit ${match.targetNumber} and beat ${match.serverScore}.`;
@@ -1505,15 +1746,15 @@
       }
     }
 
-    function renderHistory(){
-      historyList.innerHTML = '';
-      if(!history.length){
+    function renderHistory() {
+      historyList.innerHTML = "";
+      if (!history.length) {
         historyList.innerHTML = '<div class="empty">No points recorded yet.</div>';
         return;
       }
-      history.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'item';
+      history.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "item";
         div.innerHTML = `
           <strong><span>${escapeHtml(item.stamp)}</span><span>Match Log</span></strong>
           <span>${escapeHtml(item.text)}</span>
@@ -1522,14 +1763,14 @@
       });
     }
 
-    function renderAll(){
+    function renderAll() {
       renderPlayerChips();
       renderCourt();
       renderCurrent();
       renderHistory();
       updateSelectionUI();
 
-      startGameBtn.textContent = gameStarted ? 'Restart Game' : 'Start Game';
+      startGameBtn.textContent = gameStarted ? "Restart Game" : "Start Game";
       recordBtn.disabled = !gameStarted || gameOver;
       endTurnBtn.disabled = !gameStarted || gameOver;
       undoBtn.disabled = !actionStack.length;
@@ -1537,28 +1778,30 @@
       awardP2Btn.disabled = !gameStarted || gameOver || !players[1];
     }
 
-    function logEvent(text){
+    function logEvent(text) {
       history.unshift({
-        stamp: new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }),
-        text
+        stamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        text,
       });
     }
 
-    function snapshotState(){
-      return JSON.parse(JSON.stringify({
-        players,
-        gameStarted,
-        gameOver,
-        selectedSegment,
-        selectedMulti,
-        history,
-        match
-      }));
+    function snapshotState() {
+      return JSON.parse(
+        JSON.stringify({
+          players,
+          gameStarted,
+          gameOver,
+          selectedSegment,
+          selectedMulti,
+          history,
+          match,
+        })
+      );
     }
 
-    function restoreState(state){
+    function restoreState(state) {
       players.length = 0;
-      state.players.forEach(p => players.push(p));
+      state.players.forEach((p) => players.push(p));
       gameStarted = state.gameStarted;
       gameOver = state.gameOver;
       selectedSegment = state.selectedSegment;
@@ -1567,61 +1810,61 @@
       match = state.match;
     }
 
-    function undoLast(){
-      if(!actionStack.length) return;
+    function undoLast() {
+      if (!actionStack.length) return;
       const last = actionStack.pop();
       restoreState(last.before);
       renderAll();
     }
 
-    function escapeHtml(str){
+    function escapeHtml(str) {
       return String(str)
-        .replaceAll('&','&amp;')
-        .replaceAll('<','&lt;')
-        .replaceAll('>','&gt;')
-        .replaceAll('"','&quot;')
-        .replaceAll("'","&#039;");
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    addPlayerBtn.addEventListener('click', addPlayer);
-    playerNameInput.addEventListener('keydown', e => {
-      if(e.key === 'Enter') addPlayer();
+    addPlayerBtn.addEventListener("click", addPlayer);
+    playerNameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addPlayer();
     });
 
-    startGameBtn.addEventListener('click', () => {
-      if(gameStarted){
-        if(confirm('Restart the current match?')) startGame();
+    startGameBtn.addEventListener("click", () => {
+      if (gameStarted) {
+        if (confirm("Restart the current match?")) startGame();
       } else {
         startGame();
       }
     });
 
-    document.querySelectorAll('[data-multi]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if(!gameStarted || gameOver) return;
+    document.querySelectorAll("[data-multi]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!gameStarted || gameOver) return;
         selectedMulti = btn.dataset.multi;
-        if(selectedMulti === 'B' || selectedMulti === 'M') selectedSegment = null;
+        if (selectedMulti === "B" || selectedMulti === "M") selectedSegment = null;
         updateSelectionUI();
       });
     });
 
-    recordBtn.addEventListener('click', recordDart);
-    endTurnBtn.addEventListener('click', endTurn);
-    undoBtn.addEventListener('click', undoLast);
-    newGameBtn.addEventListener('click', newGame);
-    awardP1Btn.addEventListener('click', () => manualAward(0));
-    awardP2Btn.addEventListener('click', () => manualAward(1));
+    recordBtn.addEventListener("click", recordDart);
+    endTurnBtn.addEventListener("click", endTurn);
+    undoBtn.addEventListener("click", undoLast);
+    newGameBtn.addEventListener("click", newGame);
+    awardP1Btn.addEventListener("click", () => manualAward(0));
+    awardP2Btn.addEventListener("click", () => manualAward(1));
 
     createSegmentButtons();
     renderAll();
 
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) entry.target.classList.add('in');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("in");
       });
-    }, { threshold:.12 });
+    }, { threshold: 0.12 });
 
-    document.querySelectorAll('.observe').forEach(el => observer.observe(el));
+    document.querySelectorAll(".observe").forEach((el) => observer.observe(el));
   </script>
 </body>
 </html>
