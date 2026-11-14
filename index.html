@@ -395,8 +395,9 @@
       window.players[otherIdx].gamesLost++;
       renderBoard();
 
-      // Check if match is won (e.g., reaching target sets)
-      if (window.players[idx].score >= 2) {
+      // Check if match is won
+      const setsNeeded = parseInt(document.getElementById("setsToWin").value, 10) || 2;
+      if (window.players[idx].score >= setsNeeded) {
         document.getElementById("winnerTitle").textContent = `${window.players[idx].name} Wins the Match!`;
         document.getElementById("winnerSummary").textContent = `${window.players[idx].name} secured ${window.players[idx].score} sets (${window.players[idx].gamesWon} games won).`;
         document.getElementById("winnerModal").classList.add("open");
