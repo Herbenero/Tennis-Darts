@@ -130,7 +130,7 @@
       color: var(--muted);
       margin-bottom: 6px;
     }
-    select, input[type="text"], textarea {
+    select, input[type="text"] {
       width: 100%;
       border: 1px solid rgba(95, 78, 53, 0.12);
       background: #fffaf0;
@@ -141,7 +141,6 @@
       color: var(--text);
       outline: none;
     }
-    textarea { min-height: 90px; resize: vertical; }
     .btn {
       appearance: none;
       border: none;
@@ -313,7 +312,7 @@
       </div>
 
       <div style="margin-top: 18px;">
-        <button class="btn" id="closeModalBtn" type="button">Close</button>
+        <button class="btn" id="closeModalBtn" type="button">Close / New Match</button>
       </div>
     </div>
   </div>
@@ -381,10 +380,28 @@
             <div style="font-weight: 800; font-size: 1.1rem;">${p.name}</div>
             <div style="font-size: 0.85rem; color: var(--muted);">Games Won: ${p.gamesWon} | Games Lost: ${p.gamesLost}</div>
           </div>
-          <div class="court-stats">${p.score} Sets</div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="court-stats">${p.score} Sets</div>
+            <button class="btn" style="padding: 8px 12px; font-size: 0.85rem;" onclick="addSet(${idx})">+ Set</button>
+          </div>
         </div>
       `).join("");
     }
+
+    window.addSet = function(idx) {
+      window.players[idx].score++;
+      window.players[idx].gamesWon++;
+      const otherIdx = idx === 0 ? 1 : 0;
+      window.players[otherIdx].gamesLost++;
+      renderBoard();
+
+      // Check if match is won (e.g., reaching target sets)
+      if (window.players[idx].score >= 2) {
+        document.getElementById("winnerTitle").textContent = `${window.players[idx].name} Wins the Match!`;
+        document.getElementById("winnerSummary").textContent = `${window.players[idx].name} secured ${window.players[idx].score} sets (${window.players[idx].gamesWon} games won).`;
+        document.getElementById("winnerModal").classList.add("open");
+      }
+    };
 
     function sendToLeagueForm() {
       const activePlayers = window.players;
@@ -437,13 +454,10 @@
       const p2 = document.getElementById("player2Input").value.trim() || "Player 2";
       
       window.players = [
-        { name: p1, gamesWon: 2, gamesLost: 1, score: 2 },
-        { name: p2, gamesWon: 1, gamesLost: 2, score: 1 }
+        { name: p1, gamesWon: 0, gamesLost: 0, score: 0 },
+        { name: p2, gamesWon: 0, gamesLost: 0, score: 0 }
       ];
       renderBoard();
-
-      // Open modal to test league submission
-      document.getElementById("winnerModal").classList.add("open");
     });
 
     document.getElementById("sendToLeagueBtn").addEventListener("click", sendToLeagueForm);
