@@ -110,6 +110,55 @@ input[type="text"]:focus { border-color: rgba(122, 160, 95, 0.45); box-shadow: 0
 .item span { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
 @media (max-width: 1180px) { .hero, .main { grid-template-columns: 1fr; } }
 @media (max-width: 820px) { .app { width: min(100% - 18px, var(--max)); } .topbar { flex-direction: column; } .intro, .box, .court-panel, .controls, .history { padding: 18px; } .rule-grid, .player-form, .scoreline, .action-row, .mini-row { grid-template-columns: 1fr; } .meta-grid { grid-template-columns: repeat(2, 1fr); } .grid-segments { grid-template-columns: repeat(4, 1fr); } .grid-multis, .grid-multis.has-quad { grid-template-columns: repeat(3, 1fr); } .center-badge { min-width: 180px; } }
+.league-submit-bar {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(95, 78, 53, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+.league-submit-bar label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.league-submit-bar select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(95, 78, 53, 0.12);
+  background: #fffaf0;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  outline: none;
+}
+.btn-league {
+  background: linear-gradient(180deg, #48bb78, #2f855a);
+  color: #ffffff;
+  border: 1px solid rgba(104, 211, 145, 0.6);
+  box-shadow: 0 4px 14px rgba(56, 161, 105, 0.35);
+  width: 100%;
+  padding: 13px 18px;
+  font-weight: 800;
+  border-radius: 16px;
+  cursor: pointer;
+}
+.btn-league:hover {
+  filter: brightness(1.06);
+}
+.league-sync-status {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 4px;
+}
 </style>
 </head>
 <body>
@@ -260,6 +309,16 @@ input[type="text"]:focus { border-color: rgba(122, 160, 95, 0.45); box-shadow: 0
           <button class="control-btn primary" id="recordBtn">Record Dart</button>
           <button class="control-btn gold" id="endTurnBtn">End Turn</button>
           <button class="control-btn" id="undoBtn">Undo</button>
+          <div class="league-submit-bar">
+  <label for="targetLeagueSelect">Select Target League:</label>
+  <select id="targetLeagueSelect" aria-label="Target League">
+    <option value="Royal Couple">Royal Couple</option>
+    <option value="Papal 1">Papal 1</option>
+    <option value="Faubion 1">Faubion 1</option>
+  </select>
+  <button class="btn-league" id="sendToLeagueBtn" type="button">🚀 Send to League Form</button>
+  <span class="league-sync-status" id="leagueSyncStatus"></span>
+</div>
           <button class="control-btn warn" id="newGameBtn">New Game</button>
         </div>
         <div class="mini-row">
@@ -294,7 +353,107 @@ let serverIdx = 0;
 let targetNumber = null;
 let scores = [0, 0];
 let gamesWon = [0, 0];
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyBvL2K8R82qk3fG4EEKZ6sOIiieLcCKckA",
+  authDomain: "haal-fc862.firebaseapp.com",
+  projectId: "haal-fc862",
+  storageBucket: "haal-fc862.firebasestorage.app",
+  messagingSenderId: "1077392905739",
+  appId: "1:1077392905739:web:cc047fae886356663fd90e",
+  measurementId: "G-P99RVN1XBF"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const LEAGUE_URL = "https://herbenero.github.io/Hellcastle-League/";
+
+async function loadSavedLeagues() {
+  const select = document.getElementById("targetLeagueSelect");
+  if (!select) return;
+  try {
+    const snapshot = await getDocs(collection(db, "leagues"));
+    const seen = new Set();
+    const options = [];
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const rawName = (data.leagueName || docSnap.id || "").trim();
+      const norm = rawName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (rawName && !seen.has(norm)) {
+        seen.add(norm);
+        options.push(rawName);
+      }
+    });
+
+    if (options.length > 0) {
+      const prevVal = localStorage.getItem("haalis_selected_target_league") || select.value;
+      select.innerHTML = options
+        .map(name => `<option value="${name.replace(/"/g, "&quot;")}">${name.replace(/"/g, '&quot;')}</option>`)
+        .join("");
+      const matched = options.find(o => o.toLowerCase() === prevVal.toLowerCase());
+      if (matched) select.value = matched;
+    }
+  } catch (err) {
+    console.error("Failed to fetch leagues from Firestore:", err);
+  }
+}
+
+function sendToLeagueForm() {
+  // Uses your game's active players / final standings array
+  const activePlayers = typeof players !== "undefined" ? players : (window.state && window.state.players) || [];
+  if (!activePlayers.length) {
+    alert("No player results available to send.");
+    return;
+  }
+
+  const select = document.getElementById("targetLeagueSelect");
+  const selectedLeague = select ? select.value.trim() : "Royal Couple";
+  localStorage.setItem("haalis_selected_target_league", selectedLeague);
+
+  // Map scores (sets/games won as score, or points)
+  const rankedPlayers = [...activePlayers]
+    .map(p => {
+      const setsOrGamesWon = Number(p.setsWon ?? p.gamesWon ?? p.wins ?? p.score ?? 0);
+      const setsOrGamesLost = Number(p.setsLost ?? p.gamesLost ?? p.losses ?? 0);
+
+      return {
+        name: (p.name || "").trim(),
+        score: setsOrGamesWon,
+        notes: `${setsOrGamesWon} games won, ${setsOrGamesLost} games lost`
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const payload = {
+    leagueName: selectedLeague,
+    event: "Tennis Darts",
+    timestamp: new Date().toISOString(),
+    players: rankedPlayers
+  };
+
+  try {
+    localStorage.setItem("haalis_pending_match", JSON.stringify(payload));
+  } catch (e) {
+    console.warn("localStorage unavailable, relying on URL payload:", e);
+  }
+
+  const statusEl = document.getElementById("leagueSyncStatus");
+  if (statusEl) {
+    statusEl.textContent = `Sending results to ${selectedLeague}...`;
+  }
+
+  const targetUrl = new URL(LEAGUE_URL);
+  targetUrl.searchParams.set("league", selectedLeague);
+  targetUrl.searchParams.set("event", "Tennis Darts");
+  targetUrl.searchParams.set("match", JSON.stringify(payload));
+  window.location.href = targetUrl.toString();
+}
+
+document.getElementById("sendToLeagueBtn").addEventListener("click", sendToLeagueForm);
+loadSavedLeagues();
 // DOM Elements
 const boardTypeSelect = document.getElementById("boardTypeSelect");
 const quadBtn = document.getElementById("quadBtn");
