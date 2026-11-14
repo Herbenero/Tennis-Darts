@@ -13,15 +13,12 @@
       --bg2: #c0d8c0;
       --court: #b0c8b0;
       --line: #5f7a5f;
-      --panel: rgba(255, 255, 255, 0.85);
-      --panel-2: rgba(255, 255, 255, 0.48);
+      --panel: rgba(255, 255, 255, 0.88);
       --text: #1f3a1f;
       --muted: #5f7a5f;
       --green: #4a7a4a;
       --green-2: #6aa96a;
-      --clay: #8b6f52;
       --gold: #a6b64d;
-      --danger: #c54c4c;
       --shadow: 0 20px 50px rgba(73, 100, 22, 0.12);
       --radius: 24px;
       --radius-sm: 16px;
@@ -31,27 +28,12 @@
     html, body {
       margin: 0;
       padding: 0;
-    }
-    body {
       min-height: 100vh;
       font-family: "Inter", sans-serif;
       color: var(--text);
       background: radial-gradient(circle at 15% 10%, rgba(74, 122, 74, 0.12), transparent 28%), radial-gradient(circle at 85% 10%, rgba(107, 140, 107, 0.1), transparent 24%), linear-gradient(180deg, var(--bg) 0%, var(--bg2) 55%, var(--court) 100%);
-      overflow-x: hidden;
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(rgba(95, 122, 95, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(95, 122, 95, 0.03) 1px, transparent 1px);
-      background-size: 34px 34px;
-      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.05));
-      z-index: 0;
     }
     .app {
-      position: relative;
-      z-index: 1;
       width: min(var(--max), calc(100% - 28px));
       margin: 0 auto;
       padding: 22px 0 42px;
@@ -105,8 +87,6 @@
       letter-spacing: 0.12em;
       font-weight: 800;
       font-size: 0.8rem;
-      white-space: nowrap;
-      box-shadow: var(--shadow);
     }
     .dot {
       width: 9px;
@@ -127,8 +107,6 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      overflow: hidden;
       padding: 24px;
       margin-bottom: 20px;
     }
@@ -163,10 +141,7 @@
       color: var(--text);
       outline: none;
     }
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
+    textarea { min-height: 90px; resize: vertical; }
     .btn {
       appearance: none;
       border: none;
@@ -222,6 +197,29 @@
       font-size: 0.9rem;
       text-align: center;
       margin-top: 4px;
+    }
+    /* Court / Board Styles */
+    .court-board {
+      display: grid;
+      gap: 16px;
+    }
+    .player-court-card {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(95, 78, 53, 0.14);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .player-court-card.active {
+      border-color: var(--green);
+      background: rgba(122, 160, 95, 0.12);
+    }
+    .court-stats {
+      font-family: "Anton", sans-serif;
+      font-size: 1.8rem;
+      color: var(--green);
     }
     .modal {
       position: fixed;
@@ -284,11 +282,13 @@
         <button class="btn btn-primary" id="startBtn" type="button">Start Match</button>
       </div>
 
-      <!-- GAME / COURT PANEL -->
+      <!-- GAME / COURT BOARD PANEL -->
       <div class="panel" id="gamePanel">
         <h3>Court Live View</h3>
-        <div id="courtStatus" style="color: var(--muted); font-size: 1.05rem; padding: 20px 0; text-align: center;">
-          Enter players and click Start Match to begin.
+        <div id="courtStatus" class="court-board">
+          <div style="color: var(--muted); padding: 20px 0; text-align: center;">
+            Enter players and click Start Match to load the game board.
+          </div>
         </div>
       </div>
     </div>
@@ -336,11 +336,7 @@
     const db = getFirestore(app);
     const LEAGUE_URL = "https://herbenero.github.io/Hellcastle-League/";
 
-    // Dummy state for demonstration/testing if state isn't initialized yet
-    window.players = window.players || [
-      { name: "Kelly", wins: 1, losses: 0, score: 2 },
-      { name: "Herb", wins: 0, losses: 1, score: 0 }
-    ];
+    window.players = [];
 
     async function loadSavedLeagues() {
       const select = document.getElementById("targetLeagueSelect");
@@ -373,8 +369,25 @@
       }
     }
 
+    function renderBoard() {
+      const container = document.getElementById("courtStatus");
+      if (!window.players.length) {
+        container.innerHTML = `<div style="color: var(--muted); padding: 20px 0; text-align: center;">Enter players and click Start Match to load the game board.</div>`;
+        return;
+      }
+      container.innerHTML = window.players.map((p, idx) => `
+        <div class="player-court-card ${idx === 0 ? 'active' : ''}">
+          <div>
+            <div style="font-weight: 800; font-size: 1.1rem;">${p.name}</div>
+            <div style="font-size: 0.85rem; color: var(--muted);">Wins: ${p.wins} | Losses: ${p.losses}</div>
+          </div>
+          <div class="court-stats">${p.score} Pts</div>
+        </div>
+      `).join("");
+    }
+
     function sendToLeagueForm() {
-      const activePlayers = typeof players !== "undefined" ? players : (window.state && window.state.players) || [];
+      const activePlayers = window.players;
       if (!activePlayers.length) {
         alert("No player results available to send.");
         return;
@@ -386,13 +399,11 @@
 
       const rankedPlayers = [...activePlayers]
         .map(p => {
-          const wins = Number(p.wins ?? p.matchesWon ?? p.setsWon ?? 0);
-          const losses = Number(p.losses ?? p.matchesLost ?? p.setsLost ?? 0);
-          const totalScore = Number(p.score ?? p.points ?? wins);
-
+          const wins = Number(p.wins ?? 0);
+          const losses = Number(p.losses ?? 0);
           return {
-            name: (p.name || "").trim(),
-            score: totalScore,
+            name: p.name.trim(),
+            score: Number(p.score ?? wins),
             notes: `${wins} wins, ${losses} losses`
           };
         })
@@ -408,13 +419,11 @@
       try {
         localStorage.setItem("haalis_pending_match", JSON.stringify(payload));
       } catch (e) {
-        console.warn("localStorage unavailable, relying on URL payload:", e);
+        console.warn("localStorage unavailable:", e);
       }
 
       const statusEl = document.getElementById("leagueSyncStatus");
-      if (statusEl) {
-        statusEl.textContent = `Sending results to ${selectedLeague}...`;
-      }
+      if (statusEl) statusEl.textContent = `Sending results to ${selectedLeague}...`;
 
       const targetUrl = new URL(LEAGUE_URL);
       targetUrl.searchParams.set("league", selectedLeague);
@@ -425,8 +434,8 @@
 
     document.getElementById("startBtn").addEventListener("click", () => {
       const names = document.getElementById("playerNames").value.split("\n").map(s => s.trim()).filter(Boolean);
-      window.players = names.map(name => ({ name, wins: 0, losses: 0, score: 0 }));
-      document.getElementById("courtStatus").innerHTML = `Match started with: <strong>${names.join(", ")}</strong>`;
+      window.players = names.map(name => ({ name, wins: 1, losses: 0, score: 15 }));
+      renderBoard();
     });
 
     document.getElementById("sendToLeagueBtn").addEventListener("click", sendToLeagueForm);
@@ -434,10 +443,8 @@
       document.getElementById("winnerModal").classList.remove("open");
     });
 
-    // To test modal popup preview, uncomment line below:
-    // document.getElementById("winnerModal").classList.add("open");
-
     loadSavedLeagues();
+    renderBoard();
   </script>
 </body>
 </html>
